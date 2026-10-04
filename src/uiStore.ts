@@ -6,10 +6,13 @@ interface CreateDefaults {
   status?: Status;
 }
 
+export type ToastKind = 'success' | 'xp';
+
 interface Toast {
   id: number;
   message: string;
   issueKey?: string;
+  kind: ToastKind;
 }
 
 interface UiState {
@@ -18,7 +21,7 @@ interface UiState {
   toast: Toast | null;
   openCreate: (defaults?: CreateDefaults) => void;
   closeCreate: () => void;
-  showToast: (message: string, issueKey?: string) => void;
+  showToast: (message: string, issueKey?: string, kind?: ToastKind) => void;
   hideToast: () => void;
 }
 
@@ -29,6 +32,6 @@ export const useUi = create<UiState>()((set) => ({
   toast: null,
   openCreate: (defaults = {}) => set({ createOpen: true, createDefaults: defaults }),
   closeCreate: () => set({ createOpen: false }),
-  showToast: (message, issueKey) => set({ toast: { id: Date.now(), message, issueKey } }),
+  showToast: (message, issueKey, kind = 'success') => set({ toast: { id: Date.now(), message, issueKey, kind } }),
   hideToast: () => set({ toast: null }),
 }));

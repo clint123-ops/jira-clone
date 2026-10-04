@@ -4,6 +4,7 @@ import { useStore } from '../store';
 import type { IssueType, Priority, Status } from '../types';
 import { useUi } from '../uiStore';
 import { issueKey, projectLabels } from '../utils';
+import { AssigneeSelect } from './AssigneeSelect';
 import { PriorityIcon, TypeIcon } from './Icons';
 import { LabelsEditor } from './LabelsEditor';
 import { Modal } from './Modal';
@@ -30,6 +31,7 @@ function CreateIssueForm() {
   const [priority, setPriority] = useState<Priority>('medium');
   const [labels, setLabels] = useState<string[]>([]);
   const [dueDate, setDueDate] = useState('');
+  const [assigneeId, setAssigneeId] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   const suggestions = useMemo(() => projectLabels(issues, projectId), [issues, projectId]);
@@ -50,6 +52,7 @@ function CreateIssueForm() {
       priority,
       labels,
       dueDate: dueDate || null,
+      assigneeId,
     });
     const key = issueKey(project, issue);
     showToast(`Utworzono zadanie ${key}`, key);
@@ -137,14 +140,19 @@ function CreateIssueForm() {
           </div>
 
           <div className="form-row">
-            <div className="field">
-              <span className="field-label">Etykiety</span>
-              <LabelsEditor value={labels} onChange={setLabels} suggestions={suggestions} />
-            </div>
+            <label className="field">
+              <span className="field-label">Osoba przypisana</span>
+              <AssigneeSelect value={assigneeId} onChange={setAssigneeId} />
+            </label>
             <label className="field">
               <span className="field-label">Termin</span>
               <input className="input" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </label>
+          </div>
+
+          <div className="field">
+            <span className="field-label">Etykiety</span>
+            <LabelsEditor value={labels} onChange={setLabels} suggestions={suggestions} />
           </div>
         </div>
         <div className="modal-footer">

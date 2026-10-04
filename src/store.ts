@@ -1,7 +1,17 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { createSampleData } from './sample';
-import type { AppData, HistoryEntry, Issue, IssueDraft, IssuePatch, Project, Status } from './types';
+import type {
+  AppData,
+  HistoryEntry,
+  HistoryField,
+  Issue,
+  IssueDraft,
+  IssuePatch,
+  Member,
+  Project,
+  Status,
+} from './types';
 import { nowIso, uid } from './utils';
 
 interface AppState extends AppData {
@@ -18,6 +28,10 @@ interface AppState extends AppData {
   addComment: (issueId: string, body: string) => void;
   updateComment: (issueId: string, commentId: string, body: string) => void;
   deleteComment: (issueId: string, commentId: string) => void;
+
+  addMember: (name: string) => Member;
+  /** Removes a member and unassigns their issues. */
+  deleteMember: (id: string) => void;
 
   replaceData: (data: AppData) => void;
 }
@@ -44,7 +58,14 @@ function diffHistory(issue: Issue, patch: IssuePatch, at: string): HistoryEntry[
     if (from === to) continue;
     // Descriptions can be long – history only records that it changed.
     const isDescription = field === 'description';
-    entries.push({ id: uid(), at, field, from: isDescription ? null : from, to: isDescription ? null : to });
+    const historyField: HistoryField = field === 'assigneeId' ? 'assignee' : field;
+    entries.push({
+      id: uid(),
+      at,
+      field: historyField,
+      from: isDescription ? null : from,
+      to: isDescription ? null : to,
+    });
   }
   return entries;
 }
@@ -171,12 +192,36 @@ export const useStore = create<AppState>()(
           ),
         })),
 
-      replaceData: (data) => set({ projects: data.projects, issues: data.issues }),
+      addMember: (name) => {
+        const member: Member = { id: uid(), name, createdAt: nowIso() };
+        set((s) => ({ members: [...s.members, member] }));
+        return member;
+      },
+
+      deleteMember: (id) =>
+        set((s) => ({
+          members: s.members.filter((m) => m.id !== id),
+          issues: s.issues.map((i) => (i.assigneeId === id ? { ...i, assigneeId: null } : i)),
+        })),
+
+      replaceData: (data) => set({ projects: data.projects, issues: data.issues, members: data.members }),
     }),
     {
       name: 'jira-clone-data',
-      version: 1,
-      partialize: (s) => ({ projects: s.projects, issues: s.issues }),
+      version: 2,
+      partialize: (s) => ({ projects: s.projects, issues: s.issues, members: s.members }),
+      migrate: (persisted, version) => {
+        const data = persisted as AppData;
+        // v1 → v2: team members and issue assignees (gamification).
+        if (version < 2) {
+          return {
+            ...data,
+            members: [],
+            issues: data.issues.map((i) => ({ ...i, assigneeId: null })),
+          };
+        }
+        return data;
+      },
     },
   ),
 );

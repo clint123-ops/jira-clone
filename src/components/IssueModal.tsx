@@ -1,11 +1,21 @@
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { ISSUE_TYPES, PRIORITIES, PRIORITY_LABEL, STATUSES, STATUS_LABEL, TYPE_LABEL } from '../constants';
+import { ON_TIME_BONUS, issueXp } from '../gamification';
 import { useIssueModal } from '../hooks/useIssueModal';
 import { useStore } from '../store';
-import type { HistoryEntry, Issue, IssuePatch, IssueType, Priority, Project, Status } from '../types';
-import { findIssueByKey, formatDate, formatDateTime, issueKey, isOverdue, projectLabels } from '../utils';
-import { CloseIcon, PriorityIcon, TrashIcon, TypeIcon } from './Icons';
+import type { HistoryEntry, Issue, IssuePatch, IssueType, Member, Priority, Project, Status } from '../types';
+import {
+  findIssueByKey,
+  formatDate,
+  formatDateTime,
+  issueKey,
+  isOverdue,
+  localDateString,
+  projectLabels,
+} from '../utils';
+import { AssigneeSelect } from './AssigneeSelect';
+import { CloseIcon, PriorityIcon, StarIcon, TrashIcon, TypeIcon } from './Icons';
 import { LabelsEditor } from './LabelsEditor';
 import { Modal } from './Modal';
 import { ProjectAvatar } from './ProjectAvatar';
@@ -96,6 +106,14 @@ function IssueDetails({ project, issue, onClose }: IssueDetailsProps) {
 
           <div className="details-panel">
             <h3>Szczegóły</h3>
+            <DetailRow label="Osoba">
+              <AssigneeSelect
+                className="input input-subtle"
+                aria-label="Osoba przypisana"
+                value={issue.assigneeId}
+                onChange={(assigneeId) => update({ assigneeId })}
+              />
+            </DetailRow>
             <DetailRow label="Typ">
               <div className="select-with-icon">
                 <TypeIcon type={issue.type} />
@@ -160,6 +178,8 @@ function IssueDetails({ project, issue, onClose }: IssueDetailsProps) {
             </DetailRow>
           </div>
 
+          <XpPanel issue={issue} />
+
           <div className="issue-dates">
             <div>Utworzono {formatDateTime(issue.createdAt)}</div>
             <div>Zaktualizowano {formatDateTime(issue.updatedAt)}</div>
@@ -178,6 +198,32 @@ function IssueDetails({ project, issue, onClose }: IssueDetailsProps) {
         </div>
       </div>
     </>
+  );
+}
+
+function XpPanel({ issue }: { issue: Issue }) {
+  const assignee = useStore((s) => s.members.find((m) => m.id === issue.assigneeId));
+  const xp = issueXp(issue, localDateString());
+  const done = issue.status === 'done';
+
+  let hint: string;
+  if (!assignee) hint = 'Przypisz osobę, aby po ukończeniu zdobyła XP.';
+  else if (done) hint = `Zdobyte przez: ${assignee.name}`;
+  else if (xp.bonus > 0) hint = `W tym +${xp.bonus} XP za ukończenie do ${formatDate(issue.dueDate!)}.`;
+  else if (issue.dueDate === null) hint = `Ustaw termin – ukończenie w terminie daje +${ON_TIME_BONUS * 100}% XP.`;
+  else hint = 'Termin minął – bonus za terminowość przepadł.';
+
+  return (
+    <div className={`xp-panel${done && assignee ? ' is-earned' : ''}`}>
+      <StarIcon className="xp-panel-icon" />
+      <div>
+        <div className="xp-panel-title">
+          {done && assignee ? 'Zdobyto' : 'Nagroda'} <strong>{xp.total} XP</strong>
+          {done && xp.bonus > 0 && <span className="muted"> (w tym +{xp.bonus} za terminowość)</span>}
+        </div>
+        <div className="xp-panel-hint">{hint}</div>
+      </div>
+    </div>
   );
 }
 
@@ -455,11 +501,14 @@ const FIELD_LABEL: Record<HistoryEntry['field'], string> = {
   status: 'Status',
   labels: 'Etykiety',
   dueDate: 'Termin',
+  assignee: 'Osoba',
 };
 
-function displayValue(field: HistoryEntry['field'], value: string | null): string {
+function displayValue(field: HistoryEntry['field'], value: string | null, members: Member[]): string {
   if (value === null || value === '') return 'brak';
   switch (field) {
+    case 'assignee':
+      return members.find((m) => m.id === value)?.name ?? 'usunięta osoba';
     case 'status':
       return STATUS_LABEL[value as Status] ?? value;
     case 'type':
@@ -474,6 +523,7 @@ function displayValue(field: HistoryEntry['field'], value: string | null): strin
 }
 
 function History({ entries }: { entries: HistoryEntry[] }) {
+  const members = useStore((s) => s.members);
   if (entries.length === 0) return <p className="muted">Brak historii.</p>;
   return (
     <ul className="history">
@@ -487,8 +537,8 @@ function History({ entries }: { entries: HistoryEntry[] }) {
           ) : (
             <div>
               Zmieniono <strong>{FIELD_LABEL[e.field]}</strong>:{' '}
-              <span className="history-from">{displayValue(e.field, e.from)}</span> →{' '}
-              <span className="history-to">{displayValue(e.field, e.to)}</span>
+              <span className="history-from">{displayValue(e.field, e.from, members)}</span> →{' '}
+              <span className="history-to">{displayValue(e.field, e.to, members)}</span>
             </div>
           )}
         </li>

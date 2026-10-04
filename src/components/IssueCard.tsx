@@ -1,8 +1,11 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { issueXp } from '../gamification';
+import { useStore } from '../store';
 import type { Issue } from '../types';
-import { formatDate, isOverdue } from '../utils';
-import { CalendarIcon, PriorityIcon, TypeIcon } from './Icons';
+import { formatDate, isOverdue, localDateString } from '../utils';
+import { CalendarIcon, PriorityIcon, StarIcon, TypeIcon } from './Icons';
+import { MemberAvatar } from './MemberAvatar';
 
 interface IssueCardProps {
   issue: Issue;
@@ -12,18 +15,22 @@ interface IssueCardProps {
 }
 
 export function IssueCard({ issue, issueKey, overlay, onOpen }: IssueCardProps) {
+  const assignee = useStore((s) => s.members.find((m) => m.id === issue.assigneeId));
+  const xp = issueXp(issue, localDateString()).total;
   return (
     <div className={`issue-card${overlay ? ' is-overlay' : ''}`} onClick={onOpen}>
       <div className="issue-card-title">{issue.title}</div>
-      {issue.labels.length > 0 && (
-        <div className="issue-card-labels">
-          {issue.labels.map((l) => (
-            <span key={l} className="label-chip">
-              {l}
-            </span>
-          ))}
-        </div>
-      )}
+      <div className="issue-card-labels">
+        <span className="xp-chip" title={issue.status === 'done' ? 'Zdobyte XP' : 'XP za ukończenie'}>
+          <StarIcon width={11} height={11} />
+          {xp} XP
+        </span>
+        {issue.labels.map((l) => (
+          <span key={l} className="label-chip">
+            {l}
+          </span>
+        ))}
+      </div>
       <div className="issue-card-footer">
         <TypeIcon type={issue.type} />
         <span className={`issue-key${issue.status === 'done' ? ' is-done' : ''}`}>{issueKey}</span>
@@ -35,6 +42,7 @@ export function IssueCard({ issue, issueKey, overlay, onOpen }: IssueCardProps) 
           </span>
         )}
         <PriorityIcon priority={issue.priority} />
+        {assignee && <MemberAvatar member={assignee} size={20} label={`Osoba: ${assignee.name}`} />}
       </div>
     </div>
   );
