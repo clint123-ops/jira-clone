@@ -243,17 +243,20 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'jira-clone-data',
-      version: 2,
+      version: 3,
       partialize: (s) => ({ projects: s.projects, issues: s.issues, members: s.members }),
       migrate: (persisted, version) => {
-        const data = persisted as AppData;
+        let data = persisted as AppData;
         // v1 → v2: team members and issue assignees (gamification).
         if (version < 2) {
-          return {
+          data = { ...data, members: [], issues: data.issues.map((i) => ({ ...i, assigneeId: null })) };
+        }
+        // v2 → v3: stored avatar colours and XP awards. Issues completed earlier earn no XP.
+        if (version < 3) {
+          data = {
             ...data,
-            members: [],
-            // Issues completed before gamification existed earn no XP.
-            issues: data.issues.map((i) => ({ ...i, assigneeId: null, xpAward: null })),
+            members: data.members.map((m, n) => ({ ...m, colorIndex: m.colorIndex ?? n })),
+            issues: data.issues.map((i) => ({ ...i, xpAward: i.xpAward ?? null })),
           };
         }
         return data;

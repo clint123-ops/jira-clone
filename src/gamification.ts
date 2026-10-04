@@ -22,7 +22,7 @@ function localDay(iso: string): string {
 }
 
 /** When work on the issue started (it first left "todo"), or null if it has not started yet. */
-function startedAt(issue: Issue): string | null {
+export function startedAt(issue: Issue): string | null {
   const firstMove = issue.history.find((e) => e.field === 'status');
   // Created in a later column (or moved straight from it) – work started at creation.
   if (firstMove ? firstMove.from !== 'todo' : issue.status !== 'todo') return issue.createdAt;

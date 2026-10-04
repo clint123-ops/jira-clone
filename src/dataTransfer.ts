@@ -67,7 +67,7 @@ export function parseImport(text: string): AppData {
   const members = (rawMembers as Partial<Member>[]).map((m, n) => ({
     createdAt: nowIso(),
     ...m,
-    colorIndex: typeof m.colorIndex === 'number' && m.colorIndex >= 0 ? Math.floor(m.colorIndex) : n,
+    colorIndex: Number.isFinite(m.colorIndex) && m.colorIndex! >= 0 ? Math.floor(m.colorIndex!) : n,
   })) as Member[];
   const memberIds = new Set(members.map((m) => m.id));
 

@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { ISSUE_TYPES, PRIORITIES, PRIORITY_LABEL, STATUSES, STATUS_LABEL, TYPE_LABEL } from '../constants';
-import { ON_TIME_BONUS, dueDateChangedDuringWork, potentialXp } from '../gamification';
+import { ON_TIME_BONUS, dueDateChangedDuringWork, potentialXp, startedAt } from '../gamification';
 import { useIssueModal } from '../hooks/useIssueModal';
 import { useStore } from '../store';
 import type { HistoryEntry, Issue, IssuePatch, IssueType, Member, Priority, Project, Status } from '../types';
@@ -237,7 +237,9 @@ function XpPanel({ issue }: { issue: Issue }) {
   let hint: string;
   if (!issue.assigneeId) hint = 'Przypisz osobę, aby po ukończeniu zdobyła XP.';
   else if (xp.bonus > 0) hint = `W tym +${xp.bonus} XP za ukończenie do ${formatDate(issue.dueDate!)}.`;
-  else if (issue.dueDate === null) hint = `Termin ustawiony przed rozpoczęciem pracy daje +${ON_TIME_BONUS * 100}% XP.`;
+  else if (issue.dueDate === null && startedAt(issue)) {
+    hint = 'Bonus za terminowość niedostępny – termin nie był ustawiony przed rozpoczęciem pracy.';
+  } else if (issue.dueDate === null) hint = `Ustaw termin przed rozpoczęciem pracy – daje +${ON_TIME_BONUS * 100}% XP.`;
   else if (dueDateChangedDuringWork(issue)) hint = 'Termin zmieniono w trakcie pracy – bez bonusu za terminowość.';
   else hint = 'Termin minął – bonus za terminowość przepadł.';
 
