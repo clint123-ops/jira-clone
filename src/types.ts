@@ -4,12 +4,12 @@ export type Status = 'todo' | 'in_progress' | 'in_review' | 'done';
 
 export interface Project {
   id: string;
-  /** Krótki klucz, np. "FAV" – z niego powstają numery zadań (FAV-1, FAV-2…). */
+  /** Short key, e.g. "FAV" – issue keys are derived from it (FAV-1, FAV-2…). */
   key: string;
   name: string;
   description: string;
   createdAt: string;
-  /** Ostatnio nadany numer zadania w projekcie. */
+  /** Last issue number assigned in the project. */
   issueCounter: number;
 }
 
@@ -40,9 +40,9 @@ export interface Issue {
   priority: Priority;
   status: Status;
   labels: string[];
-  /** Data w formacie YYYY-MM-DD. */
+  /** Date in YYYY-MM-DD format. */
   dueDate: string | null;
-  /** Pozycja w kolumnie tablicy (rosnąco). */
+  /** Position within the board column (ascending). */
   order: number;
   createdAt: string;
   updatedAt: string;

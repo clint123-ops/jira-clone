@@ -6,7 +6,7 @@ interface LabelsEditorProps {
   suggestions: string[];
 }
 
-/** Etykiety bez spacji (jak w Jirze): spacje zamieniamy na myślniki. */
+/** Labels have no spaces (like in Jira): spaces become dashes. */
 const normalizeLabel = (raw: string) => raw.trim().replace(/\s+/g, '-').replace(/,/g, '');
 
 export function LabelsEditor({ value, onChange, suggestions }: LabelsEditorProps) {

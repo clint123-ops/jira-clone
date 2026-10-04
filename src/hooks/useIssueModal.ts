@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useSearchParams } from 'react-router';
 
-/** Otwarte zadanie trzymamy w adresie (?issue=FAV-12), więc da się je odświeżyć i podlinkować. */
+/** The open issue lives in the URL (?issue=FAV-12), so it survives a reload and can be linked. */
 export function useIssueModal() {
   const [params, setParams] = useSearchParams();
 

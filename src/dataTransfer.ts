@@ -17,7 +17,7 @@ export function downloadExport(data: AppData) {
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
 
-/** Sprawdza zawartość pliku eksportu. Rzuca Error z czytelnym komunikatem. */
+/** Validates an export file. Throws an Error with a user-facing (Polish) message. */
 export function parseImport(text: string): AppData {
   let json: unknown;
   try {
@@ -49,7 +49,7 @@ export function parseImport(text: string): AppData {
     if (!valid) throw new Error('Plik zawiera niepoprawne zadanie.');
   }
 
-  // Uzupełniamy brakujące pola opcjonalne, żeby ręcznie edytowane pliki też działały.
+  // Fill in missing optional fields so hand-edited files still work.
   const rawIssues = json.issues as Partial<Issue>[];
   const projects = (json.projects as Partial<Project>[]).map((p) => ({
     description: '',

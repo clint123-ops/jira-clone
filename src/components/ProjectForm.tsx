@@ -7,7 +7,7 @@ type ProjectValues = Pick<Project, 'name' | 'key' | 'description'>;
 
 interface ProjectFormProps {
   initial?: ProjectValues;
-  /** Projekt, który edytujemy – jego klucz nie liczy się jako zajęty. */
+  /** Project being edited – its own key does not count as taken. */
   editingId?: string;
   submitLabel: string;
   onSubmit: (values: ProjectValues) => void;
@@ -19,7 +19,7 @@ export function ProjectForm({ initial, editingId, submitLabel, onSubmit, footerE
   const projects = useStore((s) => s.projects);
   const [name, setName] = useState(initial?.name ?? '');
   const [key, setKey] = useState(initial?.key ?? '');
-  // Dopóki użytkownik sam nie zmieni klucza, podpowiadamy go z nazwy.
+  // Until the user edits the key, keep suggesting it from the name.
   const [keyTouched, setKeyTouched] = useState(Boolean(initial));
   const [description, setDescription] = useState(initial?.description ?? '');
   const [errors, setErrors] = useState<{ name?: string; key?: string }>({});

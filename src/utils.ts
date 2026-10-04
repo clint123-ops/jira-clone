@@ -12,7 +12,7 @@ const dateTimeFormat = new Intl.DateTimeFormat('pl-PL', {
   minute: '2-digit',
 });
 
-/** Przyjmuje datę YYYY-MM-DD albo pełny ISO. */
+/** Accepts a YYYY-MM-DD date or a full ISO timestamp. */
 export function formatDate(value: string): string {
   const date = value.length === 10 ? new Date(`${value}T00:00:00`) : new Date(value);
   return dateFormat.format(date);
@@ -20,7 +20,7 @@ export function formatDate(value: string): string {
 
 export const formatDateTime = (iso: string) => dateTimeFormat.format(new Date(iso));
 
-/** Dzisiejsza data lokalna jako YYYY-MM-DD (przesunięta o `offsetDays`). */
+/** Today's local date as YYYY-MM-DD (shifted by `offsetDays`). */
 export function localDateString(offsetDays = 0): string {
   const d = new Date();
   d.setDate(d.getDate() + offsetDays);
@@ -72,7 +72,7 @@ export function projectLabels(issues: Issue[], projectId: string): string[] {
 
 export const PROJECT_KEY_RE = /^[A-Z][A-Z0-9]{1,9}$/;
 
-/** Proponuje klucz projektu na podstawie nazwy, np. "Strona firmowa" → "SF". */
+/** Suggests a project key from its name, e.g. "Strona firmowa" → "SF". */
 export function suggestProjectKey(name: string): string {
   const ascii = name
     .replace(/ł/g, 'l')

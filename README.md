@@ -1,30 +1,35 @@
 # Jira Clone
 
-Lokalny klon Jiry, bez użytkowników i bez serwera. Dane są zapisywane w przeglądarce (`localStorage`).
+A local Jira clone – no users, no server. Data is stored in the browser (`localStorage`). The UI is in Polish.
 
-## Uruchomienie
+## Getting started
 
 ```bash
 npm install
 npm run dev
 ```
 
-Aplikacja działa pod adresem http://localhost:5173.
+The app runs at http://localhost:5173.
 
-## Funkcje
+## Features
 
-- Projekty z kluczem (np. `FAV`), od którego zależą numery zadań (`FAV-1`, `FAV-2`…)
-- Tablica Kanban z przeciąganiem kart: Do zrobienia → W trakcie → Do przeglądu → Gotowe
-- Szczegóły zadania: tytuł, opis, typ, priorytet, status, etykiety, termin, komentarze, historia zmian
-- Backlog z sortowaniem, wyszukiwarką i filtrami (typ, priorytet, etykieta)
-- Menu „Dane”: eksport i import JSON, przykładowe dane, czyszczenie
+- Projects with a key (e.g. `FAV`) that issue keys are derived from (`FAV-1`, `FAV-2`…)
+- Kanban board with drag & drop: To do → In progress → In review → Done
+- Issue details: title, description, type, priority, status, labels, due date, comments, change history
+- Backlog with sorting, search and filters (type, priority, label)
+- "Dane" (Data) menu: JSON export/import, sample data, clear all
 
-## Technologie
+## Tech stack
 
-React 19 + TypeScript + Vite, `zustand` (stan i zapis do `localStorage`), `@dnd-kit` (przeciąganie), `react-router`.
+React 19 + TypeScript + Vite, `zustand` (state + `localStorage` persistence), `@dnd-kit` (drag & drop), `react-router`.
 
-## Skrypty
+## Scripts
 
-- `npm run dev` – serwer deweloperski
-- `npm run build` – sprawdzenie typów i build produkcyjny
-- `npm run format` – formatowanie kodu (Prettier)
+- `npm run dev` – dev server
+- `npm run build` – type check + production build
+- `npm run format` – format code (Prettier)
+- `npm run ui-check` – screenshots at 3 resolutions + console errors + a11y check (requires a running dev server)
+
+## Contributing
+
+See [AGENTS.md](AGENTS.md) for the required workflow (browser verification, independent code review, PR screenshots).

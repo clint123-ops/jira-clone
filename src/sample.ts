@@ -8,9 +8,9 @@ interface SampleIssue {
   priority: Priority;
   status: Status;
   labels?: string[];
-  /** Termin względem dzisiaj, w dniach. */
+  /** Due date relative to today, in days. */
   dueIn?: number;
-  /** Ile dni temu utworzono. */
+  /** How many days ago the issue was created. */
   age: number;
   comments?: string[];
 }

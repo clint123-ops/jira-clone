@@ -16,7 +16,7 @@ export const useProjectContext = () => useOutletContext<ProjectContext>();
 export function ProjectLayout() {
   const { projectKey = '' } = useParams();
   const project = useStore((s) => s.projects.find((p) => p.key === projectKey.toUpperCase()));
-  // Filtry są wspólne dla tablicy i backlogu, ale resetują się przy zmianie projektu.
+  // Filters are shared by the board and backlog, but reset when the project changes.
   const [filterState, setFilterState] = useState<{ projectId: string; filters: Filters } | null>(null);
 
   if (!project) {

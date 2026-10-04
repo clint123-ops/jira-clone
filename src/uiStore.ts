@@ -22,7 +22,7 @@ interface UiState {
   hideToast: () => void;
 }
 
-/** Stan interfejsu, który nie jest zapisywany (okna, powiadomienia). */
+/** Non-persisted UI state (dialogs, toasts). */
 export const useUi = create<UiState>()((set) => ({
   createOpen: false,
   createDefaults: {},

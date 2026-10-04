@@ -11,7 +11,7 @@ interface AppState extends AppData {
 
   createIssue: (projectId: string, draft: IssueDraft) => Issue;
   updateIssue: (id: string, patch: IssuePatch) => void;
-  /** Przenosi zadanie do kolumny `status`, przed zadanie `beforeId` (null = na koniec). */
+  /** Moves an issue to column `status`, before issue `beforeId` (null = to the end). */
   moveIssue: (id: string, status: Status, beforeId: string | null) => void;
   deleteIssue: (id: string) => void;
 
@@ -42,7 +42,7 @@ function diffHistory(issue: Issue, patch: IssuePatch, at: string): HistoryEntry[
     const from = serialize(issue[field]);
     const to = serialize(patch[field]);
     if (from === to) continue;
-    // Opis bywa długi – w historii zapisujemy tylko fakt zmiany.
+    // Descriptions can be long – history only records that it changed.
     const isDescription = field === 'description';
     entries.push({ id: uid(), at, field, from: isDescription ? null : from, to: isDescription ? null : to });
   }
@@ -72,7 +72,7 @@ export const useStore = create<AppState>()(
       createIssue: (projectId, draft) => {
         const state = get();
         const project = state.projects.find((p) => p.id === projectId);
-        if (!project) throw new Error(`Nie ma projektu ${projectId}`);
+        if (!project) throw new Error(`Project ${projectId} does not exist`);
         const at = nowIso();
         const number = project.issueCounter + 1;
         const issue: Issue = {

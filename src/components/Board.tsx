@@ -32,7 +32,7 @@ type Columns = Record<Status, string[]>;
 
 interface BoardProps {
   project: Project;
-  /** Zadania projektu po filtrowaniu. */
+  /** Project issues after filtering. */
   issues: Issue[];
 }
 
@@ -54,7 +54,7 @@ export function Board({ project, issues }: BoardProps) {
     return columns;
   }, [issues]);
 
-  // Podczas przeciągania trzymamy lokalny układ kolumn; do store zapisujemy dopiero po upuszczeniu.
+  // While dragging, keep a local column layout; write to the store only on drop.
   const [dragColumns, setDragColumns] = useState<Columns | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const columns = dragColumns ?? baseColumns;
@@ -63,7 +63,7 @@ export function Board({ project, issues }: BoardProps) {
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-      // Spacja przeciąga, Enter otwiera zadanie.
+      // Space drags, Enter opens the issue.
       keyboardCodes: { start: ['Space'], cancel: ['Escape'], end: ['Space', 'Enter'] },
     }),
   );
