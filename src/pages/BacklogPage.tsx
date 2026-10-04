@@ -59,7 +59,7 @@ export function BacklogPage() {
     const compareAssignee = (a: Issue, b: Issue) => {
       const x = assigneeName(a);
       const y = assigneeName(b);
-      // Unassigned issues sort after assigned ones.
+      // Unassigned issues go after assigned ones in ascending order (like issues without a due date).
       if (x === undefined || y === undefined) return (x === undefined ? 1 : 0) - (y === undefined ? 1 : 0);
       return x.localeCompare(y, 'pl');
     };

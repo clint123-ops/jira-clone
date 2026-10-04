@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { issueXp } from '../gamification';
+import { potentialXp } from '../gamification';
 import { useStore } from '../store';
 import type { Issue } from '../types';
 import { formatDate, isOverdue, localDateString } from '../utils';
@@ -16,15 +16,19 @@ interface IssueCardProps {
 
 export function IssueCard({ issue, issueKey, overlay, onOpen }: IssueCardProps) {
   const assignee = useStore((s) => s.members.find((m) => m.id === issue.assigneeId));
-  const xp = issueXp(issue, localDateString()).total;
+  // Done issues show what was actually earned (nothing if nobody was assigned at completion).
+  const xp = issue.status === 'done' ? issue.xpAward?.xp : potentialXp(issue, localDateString()).total;
+  const xpLabel = issue.status === 'done' ? 'zdobyte' : 'za ukończenie';
   return (
     <div className={`issue-card${overlay ? ' is-overlay' : ''}`} onClick={onOpen}>
       <div className="issue-card-title">{issue.title}</div>
       <div className="issue-card-labels">
-        <span className="xp-chip" title={issue.status === 'done' ? 'Zdobyte XP' : 'XP za ukończenie'}>
-          <StarIcon width={11} height={11} />
-          {xp} XP
-        </span>
+        {xp !== undefined && (
+          <span className="xp-chip" title={`XP ${xpLabel}`}>
+            <StarIcon width={11} height={11} />
+            {xp} XP<span className="sr-only"> {xpLabel}</span>
+          </span>
+        )}
         {issue.labels.map((l) => (
           <span key={l} className="label-chip">
             {l}

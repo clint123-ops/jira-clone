@@ -1697,6 +1697,8 @@ textarea.input {
 }
 
 .xp-chip {
+  /* Contains its sr-only text, which would otherwise escape the board's horizontal scroll. */
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -1711,6 +1713,7 @@ textarea.input {
 }
 
 .assignee-cell {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;

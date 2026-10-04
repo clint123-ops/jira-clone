@@ -13,7 +13,7 @@ import {
 } from '../gamification';
 import { useStore } from '../store';
 import { useUi } from '../uiStore';
-import { localDateString, pluralIssues } from '../utils';
+import { pluralIssues } from '../utils';
 
 type Period = 'week' | 'month' | 'all';
 
@@ -34,7 +34,7 @@ export function TeamPage() {
   const stats = useMemo(() => {
     const days = PERIODS.find((p) => p.id === period)!.days;
     const since = days === null ? null : new Date(Date.now() - days * 86_400_000).toISOString();
-    return memberStats(members, issues, since, localDateString());
+    return memberStats(members, issues, since);
   }, [members, issues, period]);
 
   const teamXp = stats.reduce((sum, s) => sum + s.periodXp, 0);
@@ -147,14 +147,21 @@ function LeaderboardRow({ stats, rank }: { stats: MemberStats; rank: number }) {
           {level.current} / {level.needed} XP do poziomu {level.level + 1}
         </div>
       </div>
-      <ul className="badge-list" aria-label="Odznaki">
-        {badges.map((b) => (
-          <li key={b.id} className="badge" title={`${b.name}: ${b.description}`}>
-            <span aria-hidden="true">{b.icon}</span>
-            <span className="sr-only">{b.name}</span>
-          </li>
-        ))}
-      </ul>
+      {badges.length > 0 ? (
+        <ul className="badge-list" aria-label="Odznaki">
+          {badges.map((b) => (
+            <li key={b.id} className="badge" title={`${b.name}: ${b.description}`}>
+              <span aria-hidden="true">{b.icon}</span>
+              <span className="sr-only">
+                {b.name}: {b.description}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        // Keeps the grid column so the score stays aligned.
+        <span className="badge-list" />
+      )}
       <div className="leaderboard-score">
         <div className="leaderboard-xp">{periodXp} XP</div>
         <div className="leaderboard-done">{pluralIssues(periodDone)}</div>
@@ -259,7 +266,10 @@ function RulesCard() {
   return (
     <section className="card rules-card" aria-labelledby="rules-heading">
       <h2 id="rules-heading">Jak zdobywać XP</h2>
-      <p>XP za zadanie = typ + priorytet. Ukończenie najpóźniej w dniu terminu daje +{ON_TIME_BONUS * 100}%.</p>
+      <p>
+        XP za zadanie = typ + priorytet. Ukończenie najpóźniej w dniu terminu daje +{ON_TIME_BONUS * 100}%, jeśli termin
+        nie był zmieniany po rozpoczęciu pracy.
+      </p>
       <div className="rules-grid">
         <table className="rules-table">
           <caption className="sr-only">XP za typ zadania</caption>
@@ -299,6 +309,10 @@ function RulesCard() {
       <p>
         Poziomy rosną coraz wolniej: poziom 2 od {xpForLevel(2)} XP, 3 od {xpForLevel(3)} XP, 4 od {xpForLevel(4)} XP.
         Cofnięcie zadania z „Gotowe” odbiera XP.
+      </p>
+      <p>
+        XP dostaje osoba przypisana w chwili ukończenia; późniejsze zmiany zadania go nie zmieniają. Zadania utworzone
+        od razu jako gotowe nie dają XP.
       </p>
       <h3 className="rules-subheading">Odznaki</h3>
       <ul className="rules-badges">

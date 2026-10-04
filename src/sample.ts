@@ -1,4 +1,5 @@
 import type { AppData, Issue, IssueType, Member, Priority, Project, Status } from './types';
+import { awardXp } from './gamification';
 import { localDateString, uid } from './utils';
 
 interface SampleIssue {
@@ -39,11 +40,16 @@ export function createSampleData(): AppData {
     issueCounter: 0,
   };
 
-  const member = (name: string): Member => ({ id: uid(), name, createdAt: daysAgo(30) });
-  const anna = member('Anna Kowalska');
-  const piotr = member('Piotr Wiśniewski');
-  const ola = member('Aleksandra Żak');
-  const tomek = member('Tomasz Nowak');
+  const member = (name: string, colorIndex: number): Member => ({
+    id: uid(),
+    name,
+    createdAt: daysAgo(30),
+    colorIndex,
+  });
+  const anna = member('Anna Kowalska', 0);
+  const piotr = member('Piotr Wiśniewski', 1);
+  const ola = member('Aleksandra Żak', 2);
+  const tomek = member('Tomasz Nowak', 3);
 
   const issues: Issue[] = [];
   const add = (project: Project, s: SampleIssue) => {
@@ -53,7 +59,7 @@ export function createSampleData(): AppData {
     if (s.doneAgo !== undefined) {
       history.push({ id: uid(), at: daysAgo(s.doneAgo), field: 'status', from: 'in_review', to: 'done' });
     }
-    issues.push({
+    const issue: Issue = {
       id: uid(),
       projectId: project.id,
       number: project.issueCounter,
@@ -65,12 +71,15 @@ export function createSampleData(): AppData {
       labels: s.labels ?? [],
       dueDate: s.dueIn === undefined ? null : localDateString(s.dueIn),
       assigneeId: s.assignee?.id ?? null,
+      xpAward: null,
       order: issues.filter((i) => i.projectId === project.id && i.status === s.status).length,
       createdAt,
       updatedAt: history[history.length - 1].at,
       comments: (s.comments ?? []).map((body) => ({ id: uid(), body, createdAt })),
       history,
-    });
+    };
+    if (s.doneAgo !== undefined) issue.xpAward = awardXp(issue, daysAgo(s.doneAgo));
+    issues.push(issue);
   };
 
   add(fav, {

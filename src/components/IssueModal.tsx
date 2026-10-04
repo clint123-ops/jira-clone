@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { ISSUE_TYPES, PRIORITIES, PRIORITY_LABEL, STATUSES, STATUS_LABEL, TYPE_LABEL } from '../constants';
-import { ON_TIME_BONUS, issueXp } from '../gamification';
+import { ON_TIME_BONUS, dueDateChangedDuringWork, potentialXp } from '../gamification';
 import { useIssueModal } from '../hooks/useIssueModal';
 import { useStore } from '../store';
 import type { HistoryEntry, Issue, IssuePatch, IssueType, Member, Priority, Project, Status } from '../types';
@@ -202,24 +202,51 @@ function IssueDetails({ project, issue, onClose }: IssueDetailsProps) {
 }
 
 function XpPanel({ issue }: { issue: Issue }) {
-  const assignee = useStore((s) => s.members.find((m) => m.id === issue.assigneeId));
-  const xp = issueXp(issue, localDateString());
-  const done = issue.status === 'done';
+  const members = useStore((s) => s.members);
+  const award = issue.xpAward;
 
+  if (issue.status === 'done') {
+    const earner = award ? (members.find((m) => m.id === award.memberId)?.name ?? 'usunięta osoba') : null;
+    return (
+      <div className={`xp-panel${award ? ' is-earned' : ''}`}>
+        <StarIcon className="xp-panel-icon" />
+        <div>
+          {award ? (
+            <>
+              <div className="xp-panel-title">
+                Zdobyto <strong>{award.xp} XP</strong>
+                {award.bonus > 0 && <span className="muted"> (w tym +{award.bonus} za terminowość)</span>}
+              </div>
+              <div className="xp-panel-hint">Zdobyte przez: {earner}</div>
+            </>
+          ) : (
+            <>
+              <div className="xp-panel-title">Bez XP</div>
+              <div className="xp-panel-hint">
+                Przy ukończeniu zadanie nie miało przypisanej osoby albo utworzono je od razu jako gotowe.
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  const today = localDateString();
+  const xp = potentialXp(issue, today);
   let hint: string;
-  if (!assignee) hint = 'Przypisz osobę, aby po ukończeniu zdobyła XP.';
-  else if (done) hint = `Zdobyte przez: ${assignee.name}`;
+  if (!issue.assigneeId) hint = 'Przypisz osobę, aby po ukończeniu zdobyła XP.';
   else if (xp.bonus > 0) hint = `W tym +${xp.bonus} XP za ukończenie do ${formatDate(issue.dueDate!)}.`;
-  else if (issue.dueDate === null) hint = `Ustaw termin – ukończenie w terminie daje +${ON_TIME_BONUS * 100}% XP.`;
+  else if (issue.dueDate === null) hint = `Termin ustawiony przed rozpoczęciem pracy daje +${ON_TIME_BONUS * 100}% XP.`;
+  else if (dueDateChangedDuringWork(issue)) hint = 'Termin zmieniono w trakcie pracy – bez bonusu za terminowość.';
   else hint = 'Termin minął – bonus za terminowość przepadł.';
 
   return (
-    <div className={`xp-panel${done && assignee ? ' is-earned' : ''}`}>
+    <div className="xp-panel">
       <StarIcon className="xp-panel-icon" />
       <div>
         <div className="xp-panel-title">
-          {done && assignee ? 'Zdobyto' : 'Nagroda'} <strong>{xp.total} XP</strong>
-          {done && xp.bonus > 0 && <span className="muted"> (w tym +{xp.bonus} za terminowość)</span>}
+          Nagroda <strong>{xp.total} XP</strong>
         </div>
         <div className="xp-panel-hint">{hint}</div>
       </div>

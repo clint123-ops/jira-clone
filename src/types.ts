@@ -25,6 +25,17 @@ export interface Member {
   id: string;
   name: string;
   createdAt: string;
+  /** Index into the avatar palette, picked on creation so it stays stable. */
+  colorIndex: number;
+}
+
+/** XP granted when an issue entered "done" – a snapshot, unaffected by later edits. */
+export interface XpAward {
+  memberId: string;
+  xp: number;
+  /** Part of `xp` that is the on-time bonus. */
+  bonus: number;
+  at: string;
 }
 
 export type HistoryField =
@@ -52,6 +63,8 @@ export interface Issue {
   dueDate: string | null;
   /** Id of the assigned member, if any. */
   assigneeId: string | null;
+  /** Set while the issue is done and was assigned when completed. */
+  xpAward: XpAward | null;
   /** Position within the board column (ascending). */
   order: number;
   createdAt: string;

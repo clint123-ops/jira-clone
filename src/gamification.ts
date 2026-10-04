@@ -1,9 +1,10 @@
-// XP, levels and badges. Everything is derived from issues (never stored), so XP always matches the data:
-// moving an issue out of "done" or reassigning it takes the XP back.
-import type { Issue, IssueType, Member, Priority } from './types';
+// XP, levels and badges. XP is awarded when an issue enters "done" and stored on the issue (`xpAward`), so
+// later edits (priority, type, due date, assignee) cannot change it. Leaving "done" takes the award back.
+import type { Issue, IssueType, Member, Priority, XpAward } from './types';
 
 export const TYPE_XP: Record<IssueType, number> = { task: 10, bug: 15, story: 20, epic: 40 };
-export const PRIORITY_XP: Record<Priority, number> = { highest: 25, high: 15, medium: 10, low: 5, lowest: 0 };
+/** Kept small on purpose, so raising the priority is not a shortcut to more XP. */
+export const PRIORITY_XP: Record<Priority, number> = { highest: 10, high: 6, medium: 4, low: 2, lowest: 0 };
 /** Bonus (as a fraction of base XP) for finishing on or before the due date. */
 export const ON_TIME_BONUS = 0.5;
 
@@ -13,17 +14,6 @@ export interface IssueXp {
   total: number;
 }
 
-/** When the issue last entered "done" (null if it is not done). */
-export function completedAt(issue: Issue): string | null {
-  if (issue.status !== 'done') return null;
-  for (let n = issue.history.length - 1; n >= 0; n--) {
-    const e = issue.history[n];
-    if (e.field === 'status' && e.to === 'done') return e.at;
-  }
-  // Created directly as done.
-  return issue.createdAt;
-}
-
 /** Local YYYY-MM-DD of an ISO timestamp – due dates are local calendar days. */
 function localDay(iso: string): string {
   const d = new Date(iso);
@@ -31,21 +21,36 @@ function localDay(iso: string): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-/**
- * XP an issue is worth. For an open issue the on-time bonus is shown as long as the due date has not passed
- * (`today` is a local YYYY-MM-DD); for a done issue it depends on when it was completed.
- */
-export function issueXp(issue: Issue, today: string): IssueXp {
+/** When work on the issue started (it first left "todo"), or null if it has not started yet. */
+function startedAt(issue: Issue): string | null {
+  const firstMove = issue.history.find((e) => e.field === 'status');
+  // Created in a later column (or moved straight from it) – work started at creation.
+  if (firstMove ? firstMove.from !== 'todo' : issue.status !== 'todo') return issue.createdAt;
+  return firstMove ? firstMove.at : null;
+}
+
+/** The on-time bonus only counts if the due date was not moved after work started. */
+export function dueDateChangedDuringWork(issue: Issue): boolean {
+  const started = startedAt(issue);
+  if (!started) return false;
+  return issue.history.some((e) => e.field === 'dueDate' && e.at > started);
+}
+
+function xpFor(issue: Issue, day: string): IssueXp {
   const base = TYPE_XP[issue.type] + PRIORITY_XP[issue.priority];
-  const done = completedAt(issue);
-  const onTime = issue.dueDate !== null && (done ? localDay(done) : today) <= issue.dueDate;
+  const onTime = issue.dueDate !== null && day <= issue.dueDate && !dueDateChangedDuringWork(issue);
   const bonus = onTime ? Math.round(base * ON_TIME_BONUS) : 0;
   return { base, bonus, total: base + bonus };
 }
 
-export function isOnTime(issue: Issue): boolean {
-  const done = completedAt(issue);
-  return done !== null && issue.dueDate !== null && localDay(done) <= issue.dueDate;
+/** XP the issue would earn if it were completed today (`today` is a local YYYY-MM-DD). */
+export const potentialXp = (issue: Issue, today: string) => xpFor(issue, today);
+
+/** The award for an issue entering "done" at `at` – null when nobody is assigned. */
+export function awardXp(issue: Issue, at: string): XpAward | null {
+  if (!issue.assigneeId) return null;
+  const { total, bonus } = xpFor(issue, localDay(at));
+  return { memberId: issue.assigneeId, xp: total, bonus, at };
 }
 
 // ---------- Levels ----------
@@ -85,8 +90,10 @@ export interface Badge {
   icon: string;
 }
 
+type Awarded = Issue & { xpAward: XpAward };
+
 interface BadgeRule extends Badge {
-  earned: (done: Issue[]) => boolean;
+  earned: (done: Awarded[]) => boolean;
 }
 
 const BADGE_RULES: BadgeRule[] = [
@@ -109,14 +116,14 @@ const BADGE_RULES: BadgeRule[] = [
     name: 'Punktualny',
     description: 'Ukończ 5 zadań w terminie',
     icon: '⏰',
-    earned: (d) => d.filter(isOnTime).length >= 5,
+    earned: (d) => d.filter((i) => i.xpAward.bonus > 0).length >= 5,
   },
   {
-    id: 'firefighter',
-    name: 'Strażak',
-    description: 'Ukończ 3 zadania o najwyższym priorytecie',
-    icon: '🔥',
-    earned: (d) => d.filter((i) => i.priority === 'highest').length >= 3,
+    id: 'epic',
+    name: 'Epicki finał',
+    description: 'Ukończ epic',
+    icon: '🏔️',
+    earned: (d) => d.some((i) => i.type === 'epic'),
   },
   {
     id: 'marathon',
@@ -143,16 +150,16 @@ export interface MemberStats {
 }
 
 /**
- * Stats for every member. `since` is an ISO timestamp – only issues completed after it count towards
+ * Stats for every member. `since` is an ISO timestamp – only awards given after it count towards
  * `periodXp`/`periodDone` (null = all time).
  */
-export function memberStats(members: Member[], issues: Issue[], since: string | null, today: string): MemberStats[] {
-  const doneBy = new Map<string, Issue[]>();
+export function memberStats(members: Member[], issues: Issue[], since: string | null): MemberStats[] {
+  const doneBy = new Map<string, Awarded[]>();
   for (const issue of issues) {
-    if (issue.status !== 'done' || !issue.assigneeId) continue;
-    const list = doneBy.get(issue.assigneeId) ?? [];
-    list.push(issue);
-    doneBy.set(issue.assigneeId, list);
+    if (!issue.xpAward) continue;
+    const list = doneBy.get(issue.xpAward.memberId) ?? [];
+    list.push(issue as Awarded);
+    doneBy.set(issue.xpAward.memberId, list);
   }
 
   return members
@@ -161,11 +168,10 @@ export function memberStats(members: Member[], issues: Issue[], since: string | 
       let totalXp = 0;
       let periodXp = 0;
       let periodDone = 0;
-      for (const issue of done) {
-        const xp = issueXp(issue, today).total;
-        totalXp += xp;
-        if (since === null || completedAt(issue)! >= since) {
-          periodXp += xp;
+      for (const { xpAward } of done) {
+        totalXp += xpAward.xp;
+        if (since === null || xpAward.at >= since) {
+          periodXp += xpAward.xp;
           periodDone += 1;
         }
       }
@@ -184,10 +190,10 @@ export function memberStats(members: Member[], issues: Issue[], since: string | 
 }
 
 /** Total XP of one member (all time). */
-export function totalXpOf(memberId: string, issues: Issue[], today: string): number {
+export function totalXpOf(memberId: string, issues: Issue[]): number {
   let xp = 0;
   for (const issue of issues) {
-    if (issue.status === 'done' && issue.assigneeId === memberId) xp += issueXp(issue, today).total;
+    if (issue.xpAward?.memberId === memberId) xp += issue.xpAward.xp;
   }
   return xp;
 }

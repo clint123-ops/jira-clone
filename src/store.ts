@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { awardXp } from './gamification';
 import { createSampleData } from './sample';
 import type {
   AppData,
@@ -12,7 +13,7 @@ import type {
   Project,
   Status,
 } from './types';
-import { nowIso, uid } from './utils';
+import { AVATAR_COLORS, nowIso, uid } from './utils';
 
 interface AppState extends AppData {
   createProject: (input: Pick<Project, 'key' | 'name' | 'description'>) => Project;
@@ -44,6 +45,18 @@ function nextOrder(issues: Issue[], projectId: string, status: Status): number {
     if (i.projectId === projectId && i.status === status) max = Math.max(max, i.order);
   }
   return max + 1;
+}
+
+/** Keeps `xpAward` in sync with a status change: granted on entering "done", taken back on leaving it. */
+function withAward(before: Issue, after: Issue, at: string): Issue {
+  if (after.status === before.status) return after;
+  return { ...after, xpAward: after.status === 'done' ? awardXp(after, at) : null };
+}
+
+/** The least used avatar colour, so members look different from each other. */
+function nextColorIndex(members: Member[]): number {
+  const used = AVATAR_COLORS.map((_, n) => members.filter((m) => m.colorIndex === n).length);
+  return used.indexOf(Math.min(...used));
 }
 
 const serialize = (value: unknown): string | null =>
@@ -101,6 +114,8 @@ export const useStore = create<AppState>()(
           projectId,
           number,
           ...draft,
+          // Issues created directly as done earn no XP – XP is for finishing work.
+          xpAward: null,
           order: nextOrder(state.issues, projectId, draft.status),
           createdAt: at,
           updatedAt: at,
@@ -122,13 +137,17 @@ export const useStore = create<AppState>()(
           const history = diffHistory(issue, patch, at);
           if (history.length === 0) return s;
           const statusChanged = patch.status !== undefined && patch.status !== issue.status;
-          const updated: Issue = {
-            ...issue,
-            ...patch,
-            order: statusChanged ? nextOrder(s.issues, issue.projectId, patch.status!) : issue.order,
-            updatedAt: at,
-            history: [...issue.history, ...history],
-          };
+          const updated = withAward(
+            issue,
+            {
+              ...issue,
+              ...patch,
+              order: statusChanged ? nextOrder(s.issues, issue.projectId, patch.status!) : issue.order,
+              updatedAt: at,
+              history: [...issue.history, ...history],
+            },
+            at,
+          );
           return { issues: s.issues.map((i) => (i.id === id ? updated : i)) };
         }),
 
@@ -151,13 +170,17 @@ export const useStore = create<AppState>()(
               const order = orders.get(i.id);
               if (order === undefined) return i;
               if (i.id === id && statusChanged) {
-                return {
-                  ...i,
-                  status,
-                  order,
-                  updatedAt: at,
-                  history: [...i.history, { id: uid(), at, field: 'status', from: i.status, to: status }],
-                };
+                return withAward(
+                  i,
+                  {
+                    ...i,
+                    status,
+                    order,
+                    updatedAt: at,
+                    history: [...i.history, { id: uid(), at, field: 'status', from: i.status, to: status }],
+                  },
+                  at,
+                );
               }
               return i.order === order ? i : { ...i, order };
             }),
@@ -193,16 +216,28 @@ export const useStore = create<AppState>()(
         })),
 
       addMember: (name) => {
-        const member: Member = { id: uid(), name, createdAt: nowIso() };
+        const member: Member = { id: uid(), name, createdAt: nowIso(), colorIndex: nextColorIndex(get().members) };
         set((s) => ({ members: [...s.members, member] }));
         return member;
       },
 
       deleteMember: (id) =>
-        set((s) => ({
-          members: s.members.filter((m) => m.id !== id),
-          issues: s.issues.map((i) => (i.assigneeId === id ? { ...i, assigneeId: null } : i)),
-        })),
+        set((s) => {
+          const at = nowIso();
+          return {
+            members: s.members.filter((m) => m.id !== id),
+            issues: s.issues.map((i) =>
+              i.assigneeId === id
+                ? {
+                    ...i,
+                    assigneeId: null,
+                    updatedAt: at,
+                    history: [...i.history, { id: uid(), at, field: 'assignee', from: id, to: null }],
+                  }
+                : i,
+            ),
+          };
+        }),
 
       replaceData: (data) => set({ projects: data.projects, issues: data.issues, members: data.members }),
     }),
@@ -217,7 +252,8 @@ export const useStore = create<AppState>()(
           return {
             ...data,
             members: [],
-            issues: data.issues.map((i) => ({ ...i, assigneeId: null })),
+            // Issues completed before gamification existed earn no XP.
+            issues: data.issues.map((i) => ({ ...i, assigneeId: null, xpAward: null })),
           };
         }
         return data;
