@@ -137,3 +137,19 @@ export const DatabaseIcon = (p: IconProps) => (
     <path d="M2.5 3.8v8.4c0 1.1 2.5 2 5.5 2s5.5-.9 5.5-2V3.8M2.5 8c0 1.1 2.5 2 5.5 2s5.5-.9 5.5-2" />
   </svg>
 );
+export const StarIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M8 1.8l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.6l-3.8 2 .7-4.3-3.1-3 4.3-.6z" />
+  </svg>
+);
+export const TrophyIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M4.5 2.5h7v3.5a3.5 3.5 0 01-7 0zM4.5 3.5H2.5v1a2.5 2.5 0 002.3 2.5M11.5 3.5h2v1a2.5 2.5 0 01-2.3 2.5M8 9.5v2.5M5.5 14h5M6.5 12h3" />
+  </svg>
+);
+export const UserIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <circle cx="8" cy="5.5" r="2.8" />
+    <path d="M2.8 14c.6-2.6 2.7-4.2 5.2-4.2s4.6 1.6 5.2 4.2" />
+  </svg>
+);

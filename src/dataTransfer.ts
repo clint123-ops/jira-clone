@@ -1,5 +1,5 @@
 import { ISSUE_TYPES, PRIORITIES, STATUSES } from './constants';
-import type { AppData, Issue, Project } from './types';
+import type { AppData, Issue, Member, Project, XpAward } from './types';
 import { localDateString, nowIso } from './utils';
 
 const EXPORT_VERSION = 1;
@@ -16,6 +16,14 @@ export function downloadExport(data: AppData) {
 }
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+
+const isValidAward = (a: unknown, memberIds: Set<string>): a is XpAward =>
+  isObject(a) &&
+  typeof a.memberId === 'string' &&
+  memberIds.has(a.memberId) &&
+  typeof a.xp === 'number' &&
+  typeof a.bonus === 'number' &&
+  typeof a.at === 'string';
 
 /** Validates an export file. Throws an Error with a user-facing (Polish) message. */
 export function parseImport(text: string): AppData {
@@ -48,6 +56,20 @@ export function parseImport(text: string): AppData {
       PRIORITIES.includes(i.priority as never);
     if (!valid) throw new Error('Plik zawiera niepoprawne zadanie.');
   }
+  // Members are optional – files exported before gamification have none.
+  const rawMembers: unknown[] = json.members === undefined ? [] : (json.members as unknown[]);
+  if (!Array.isArray(rawMembers)) throw new Error('Plik zawiera niepoprawną listę członków zespołu.');
+  for (const m of rawMembers) {
+    if (!isObject(m) || typeof m.id !== 'string' || typeof m.name !== 'string' || !m.name.trim()) {
+      throw new Error('Plik zawiera niepoprawnego członka zespołu.');
+    }
+  }
+  const members = (rawMembers as Partial<Member>[]).map((m, n) => ({
+    createdAt: nowIso(),
+    ...m,
+    colorIndex: Number.isFinite(m.colorIndex) && m.colorIndex! >= 0 ? Math.floor(m.colorIndex!) : n,
+  })) as Member[];
+  const memberIds = new Set(members.map((m) => m.id));
 
   // Fill in missing optional fields so hand-edited files still work.
   const rawIssues = json.issues as Partial<Issue>[];
@@ -70,6 +92,9 @@ export function parseImport(text: string): AppData {
     comments: [],
     history: [],
     ...i,
+    // Drop assignments to members that are not in the file.
+    assigneeId: typeof i.assigneeId === 'string' && memberIds.has(i.assigneeId) ? i.assigneeId : null,
+    xpAward: i.status === 'done' && isValidAward(i.xpAward, memberIds) ? i.xpAward : null,
   })) as Issue[];
-  return { projects, issues };
+  return { projects, issues, members };
 }

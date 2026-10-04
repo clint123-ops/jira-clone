@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useIssueModal } from '../hooks/useIssueModal';
 import { useUi } from '../uiStore';
-import { CheckCircleIcon, CloseIcon } from './Icons';
+import { CheckCircleIcon, CloseIcon, StarIcon } from './Icons';
 
 export function Toast() {
   const toast = useUi((s) => s.toast);
@@ -16,8 +16,8 @@ export function Toast() {
 
   if (!toast) return null;
   return (
-    <div className="toast" role="status">
-      <CheckCircleIcon className="toast-icon" />
+    <div className={`toast toast-${toast.kind}`} role="status">
+      {toast.kind === 'xp' ? <StarIcon className="toast-icon" /> : <CheckCircleIcon className="toast-icon" />}
       <div className="toast-body">
         <div>{toast.message}</div>
         {toast.issueKey && (

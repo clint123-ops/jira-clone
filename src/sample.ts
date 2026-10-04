@@ -1,4 +1,5 @@
-import type { AppData, Issue, IssueType, Priority, Project, Status } from './types';
+import type { AppData, Issue, IssueType, Member, Priority, Project, Status } from './types';
+import { awardXp } from './gamification';
 import { localDateString, uid } from './utils';
 
 interface SampleIssue {
@@ -13,6 +14,9 @@ interface SampleIssue {
   /** How many days ago the issue was created. */
   age: number;
   comments?: string[];
+  assignee?: Member;
+  /** For done issues: how many days ago the issue was moved to done. */
+  doneAgo?: number;
 }
 
 export function createSampleData(): AppData {
@@ -36,11 +40,26 @@ export function createSampleData(): AppData {
     issueCounter: 0,
   };
 
+  const member = (name: string, colorIndex: number): Member => ({
+    id: uid(),
+    name,
+    createdAt: daysAgo(30),
+    colorIndex,
+  });
+  const anna = member('Anna Kowalska', 0);
+  const piotr = member('Piotr Wiśniewski', 1);
+  const ola = member('Aleksandra Żak', 2);
+  const tomek = member('Tomasz Nowak', 3);
+
   const issues: Issue[] = [];
   const add = (project: Project, s: SampleIssue) => {
     project.issueCounter += 1;
     const createdAt = daysAgo(s.age);
-    issues.push({
+    const history: Issue['history'] = [{ id: uid(), at: createdAt, field: 'created', from: null, to: null }];
+    if (s.doneAgo !== undefined) {
+      history.push({ id: uid(), at: daysAgo(s.doneAgo), field: 'status', from: 'in_review', to: 'done' });
+    }
+    const issue: Issue = {
       id: uid(),
       projectId: project.id,
       number: project.issueCounter,
@@ -51,12 +70,16 @@ export function createSampleData(): AppData {
       status: s.status,
       labels: s.labels ?? [],
       dueDate: s.dueIn === undefined ? null : localDateString(s.dueIn),
+      assigneeId: s.assignee?.id ?? null,
+      xpAward: null,
       order: issues.filter((i) => i.projectId === project.id && i.status === s.status).length,
       createdAt,
-      updatedAt: createdAt,
+      updatedAt: history[history.length - 1].at,
       comments: (s.comments ?? []).map((body) => ({ id: uid(), body, createdAt })),
-      history: [{ id: uid(), at: createdAt, field: 'created', from: null, to: null }],
-    });
+      history,
+    };
+    if (s.doneAgo !== undefined) issue.xpAward = awardXp(issue, daysAgo(s.doneAgo));
+    issues.push(issue);
   };
 
   add(fav, {
@@ -69,6 +92,8 @@ export function createSampleData(): AppData {
   });
   add(fav, {
     title: 'Skonfigurować CI dla repozytorium',
+    assignee: tomek,
+    doneAgo: 20,
     description: 'Testy i build uruchamiane automatycznie przy każdym pushu.',
     type: 'task',
     priority: 'medium',
@@ -78,6 +103,7 @@ export function createSampleData(): AppData {
   });
   add(fav, {
     title: 'Jako użytkownik chcę zapisywać ulubione miejsca',
+    assignee: anna,
     description: 'Serduszko przy lokalu dodaje go do listy ulubionych, widocznej w profilu.',
     type: 'story',
     priority: 'high',
@@ -89,6 +115,7 @@ export function createSampleData(): AppData {
   });
   add(fav, {
     title: 'Logowanie nie działa w Safari',
+    assignee: piotr,
     description: 'Po kliknięciu „Zaloguj” strona się odświeża i nic się nie dzieje. Tylko Safari 18.',
     type: 'bug',
     priority: 'highest',
@@ -99,6 +126,7 @@ export function createSampleData(): AppData {
   });
   add(fav, {
     title: 'Zaprojektować ekran profilu',
+    assignee: ola,
     type: 'task',
     priority: 'medium',
     status: 'todo',
@@ -116,6 +144,7 @@ export function createSampleData(): AppData {
   });
   add(fav, {
     title: 'Błędne sumowanie punktów lojalnościowych',
+    assignee: piotr,
     description: 'Przy dwóch transakcjach w tej samej minucie punkty liczą się tylko raz.',
     type: 'bug',
     priority: 'high',
@@ -134,6 +163,8 @@ export function createSampleData(): AppData {
   });
   add(fav, {
     title: 'Aktualizacja zależności',
+    assignee: tomek,
+    doneAgo: 5,
     type: 'task',
     priority: 'lowest',
     status: 'done',
@@ -142,6 +173,7 @@ export function createSampleData(): AppData {
   });
   add(fav, {
     title: 'Eksport historii transakcji do CSV',
+    assignee: anna,
     type: 'story',
     priority: 'medium',
     status: 'in_review',
@@ -158,6 +190,8 @@ export function createSampleData(): AppData {
   });
   add(fav, {
     title: 'Literówka na ekranie powitalnym',
+    assignee: ola,
+    doneAgo: 1,
     type: 'bug',
     priority: 'lowest',
     status: 'done',
@@ -165,8 +199,53 @@ export function createSampleData(): AppData {
     age: 2,
   });
 
+  add(fav, {
+    title: 'Integracja z bramką płatności',
+    assignee: anna,
+    doneAgo: 3,
+    type: 'story',
+    priority: 'high',
+    status: 'done',
+    labels: ['backend'],
+    dueIn: -2,
+    age: 15,
+  });
+  add(fav, {
+    title: 'Crash aplikacji przy braku internetu',
+    assignee: piotr,
+    doneAgo: 2,
+    type: 'bug',
+    priority: 'highest',
+    status: 'done',
+    labels: ['mobile'],
+    dueIn: -1,
+    age: 4,
+  });
+  add(fav, {
+    title: 'Ekran logowania – nowy wygląd',
+    assignee: ola,
+    doneAgo: 4,
+    type: 'task',
+    priority: 'medium',
+    status: 'done',
+    labels: ['design'],
+    dueIn: -3,
+    age: 11,
+  });
+  add(fav, {
+    title: 'Zła waluta w podsumowaniu zamówienia',
+    assignee: piotr,
+    doneAgo: 12,
+    type: 'bug',
+    priority: 'high',
+    status: 'done',
+    labels: ['backend'],
+    age: 16,
+  });
+
   add(web, {
     title: 'Nowa strona główna',
+    assignee: ola,
     type: 'task',
     priority: 'high',
     status: 'in_progress',
@@ -177,5 +256,5 @@ export function createSampleData(): AppData {
   add(web, { title: 'Formularz kontaktowy', type: 'task', priority: 'medium', status: 'todo', age: 7 });
   add(web, { title: 'Zepsuty link w stopce', type: 'bug', priority: 'low', status: 'todo', age: 1 });
 
-  return { projects: [fav, web], issues };
+  return { projects: [fav, web], issues, members: [anna, piotr, ola, tomek] };
 }

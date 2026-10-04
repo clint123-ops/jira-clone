@@ -20,7 +20,26 @@ export interface Comment {
   updatedAt?: string;
 }
 
-export type HistoryField = 'created' | 'title' | 'description' | 'type' | 'priority' | 'status' | 'labels' | 'dueDate';
+/** A team member. Issues can be assigned to members, who earn XP for completing them. */
+export interface Member {
+  id: string;
+  name: string;
+  createdAt: string;
+  /** Index into the avatar palette, picked on creation so it stays stable. */
+  colorIndex: number;
+}
+
+/** XP granted when an issue entered "done" – a snapshot, unaffected by later edits. */
+export interface XpAward {
+  memberId: string;
+  xp: number;
+  /** Part of `xp` that is the on-time bonus. */
+  bonus: number;
+  at: string;
+}
+
+export type HistoryField =
+  'created' | 'title' | 'description' | 'type' | 'priority' | 'status' | 'labels' | 'dueDate' | 'assignee';
 
 export interface HistoryEntry {
   id: string;
@@ -42,6 +61,10 @@ export interface Issue {
   labels: string[];
   /** Date in YYYY-MM-DD format. */
   dueDate: string | null;
+  /** Id of the assigned member, if any. */
+  assigneeId: string | null;
+  /** Set while the issue is done and was assigned when completed. */
+  xpAward: XpAward | null;
   /** Position within the board column (ascending). */
   order: number;
   createdAt: string;
@@ -50,12 +73,16 @@ export interface Issue {
   history: HistoryEntry[];
 }
 
-export type IssueDraft = Pick<Issue, 'title' | 'description' | 'type' | 'priority' | 'status' | 'labels' | 'dueDate'>;
+export type IssueDraft = Pick<
+  Issue,
+  'title' | 'description' | 'type' | 'priority' | 'status' | 'labels' | 'dueDate' | 'assigneeId'
+>;
 export type IssuePatch = Partial<IssueDraft>;
 
 export interface AppData {
   projects: Project[];
   issues: Issue[];
+  members: Member[];
 }
 
 export interface Filters {

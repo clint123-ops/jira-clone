@@ -19,8 +19,8 @@ export function DataMenu() {
   const navigate = useNavigate();
 
   const handleExport = () => {
-    const { projects, issues } = useStore.getState();
-    downloadExport({ projects, issues });
+    const { projects, issues, members } = useStore.getState();
+    downloadExport({ projects, issues, members });
     setOpen(false);
   };
 
@@ -49,8 +49,10 @@ export function DataMenu() {
 
   const handleClear = () => {
     setOpen(false);
-    if (!window.confirm('Usunąć wszystkie projekty i zadania? Tej operacji nie można cofnąć.')) return;
-    replaceData({ projects: [], issues: [] });
+    if (!window.confirm('Usunąć wszystkie projekty, zadania i członków zespołu? Tej operacji nie można cofnąć.')) {
+      return;
+    }
+    replaceData({ projects: [], issues: [], members: [] });
     navigate('/');
     showToast('Usunięto wszystkie dane.');
   };

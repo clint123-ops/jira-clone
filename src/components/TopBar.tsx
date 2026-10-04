@@ -32,6 +32,9 @@ export function TopBar() {
         <NavLink to="/" end className="topbar-link">
           Projekty
         </NavLink>
+        <NavLink to="/team" className="topbar-link">
+          Zespół
+        </NavLink>
       </nav>
       <button
         type="button"
@@ -40,7 +43,7 @@ export function TopBar() {
         title={projects.length === 0 ? 'Najpierw utwórz projekt' : undefined}
         onClick={() => openCreate({ projectId: currentProject?.id })}
       >
-        <PlusIcon /> Utwórz
+        <PlusIcon /> <span className="btn-label">Utwórz</span>
       </button>
       <div className="topbar-spacer" />
       <DataMenu />

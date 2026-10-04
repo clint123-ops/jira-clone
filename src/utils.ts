@@ -92,7 +92,7 @@ export function suggestProjectKey(name: string): string {
   return key.replace(/^[0-9]+/, '');
 }
 
-const AVATAR_COLORS = ['#0c66e4', '#6e5dc6', '#1f845a', '#c9372c', '#b65c02', '#0b7a8e', '#ae4787'];
+export const AVATAR_COLORS = ['#0c66e4', '#6e5dc6', '#1f845a', '#c9372c', '#b65c02', '#0b7a8e', '#ae4787'];
 
 export function projectColor(key: string): string {
   let hash = 0;

@@ -1,8 +1,19 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { awardXp } from './gamification';
 import { createSampleData } from './sample';
-import type { AppData, HistoryEntry, Issue, IssueDraft, IssuePatch, Project, Status } from './types';
-import { nowIso, uid } from './utils';
+import type {
+  AppData,
+  HistoryEntry,
+  HistoryField,
+  Issue,
+  IssueDraft,
+  IssuePatch,
+  Member,
+  Project,
+  Status,
+} from './types';
+import { AVATAR_COLORS, nowIso, uid } from './utils';
 
 interface AppState extends AppData {
   createProject: (input: Pick<Project, 'key' | 'name' | 'description'>) => Project;
@@ -19,6 +30,10 @@ interface AppState extends AppData {
   updateComment: (issueId: string, commentId: string, body: string) => void;
   deleteComment: (issueId: string, commentId: string) => void;
 
+  addMember: (name: string) => Member;
+  /** Removes a member and unassigns their issues. */
+  deleteMember: (id: string) => void;
+
   replaceData: (data: AppData) => void;
 }
 
@@ -30,6 +45,18 @@ function nextOrder(issues: Issue[], projectId: string, status: Status): number {
     if (i.projectId === projectId && i.status === status) max = Math.max(max, i.order);
   }
   return max + 1;
+}
+
+/** Keeps `xpAward` in sync with a status change: granted on entering "done", taken back on leaving it. */
+function withAward(before: Issue, after: Issue, at: string): Issue {
+  if (after.status === before.status) return after;
+  return { ...after, xpAward: after.status === 'done' ? awardXp(after, at) : null };
+}
+
+/** The least used avatar colour, so members look different from each other. */
+function nextColorIndex(members: Member[]): number {
+  const used = AVATAR_COLORS.map((_, n) => members.filter((m) => m.colorIndex === n).length);
+  return used.indexOf(Math.min(...used));
 }
 
 const serialize = (value: unknown): string | null =>
@@ -44,7 +71,14 @@ function diffHistory(issue: Issue, patch: IssuePatch, at: string): HistoryEntry[
     if (from === to) continue;
     // Descriptions can be long – history only records that it changed.
     const isDescription = field === 'description';
-    entries.push({ id: uid(), at, field, from: isDescription ? null : from, to: isDescription ? null : to });
+    const historyField: HistoryField = field === 'assigneeId' ? 'assignee' : field;
+    entries.push({
+      id: uid(),
+      at,
+      field: historyField,
+      from: isDescription ? null : from,
+      to: isDescription ? null : to,
+    });
   }
   return entries;
 }
@@ -80,6 +114,8 @@ export const useStore = create<AppState>()(
           projectId,
           number,
           ...draft,
+          // Issues created directly as done earn no XP – XP is for finishing work.
+          xpAward: null,
           order: nextOrder(state.issues, projectId, draft.status),
           createdAt: at,
           updatedAt: at,
@@ -101,13 +137,17 @@ export const useStore = create<AppState>()(
           const history = diffHistory(issue, patch, at);
           if (history.length === 0) return s;
           const statusChanged = patch.status !== undefined && patch.status !== issue.status;
-          const updated: Issue = {
-            ...issue,
-            ...patch,
-            order: statusChanged ? nextOrder(s.issues, issue.projectId, patch.status!) : issue.order,
-            updatedAt: at,
-            history: [...issue.history, ...history],
-          };
+          const updated = withAward(
+            issue,
+            {
+              ...issue,
+              ...patch,
+              order: statusChanged ? nextOrder(s.issues, issue.projectId, patch.status!) : issue.order,
+              updatedAt: at,
+              history: [...issue.history, ...history],
+            },
+            at,
+          );
           return { issues: s.issues.map((i) => (i.id === id ? updated : i)) };
         }),
 
@@ -130,13 +170,17 @@ export const useStore = create<AppState>()(
               const order = orders.get(i.id);
               if (order === undefined) return i;
               if (i.id === id && statusChanged) {
-                return {
-                  ...i,
-                  status,
-                  order,
-                  updatedAt: at,
-                  history: [...i.history, { id: uid(), at, field: 'status', from: i.status, to: status }],
-                };
+                return withAward(
+                  i,
+                  {
+                    ...i,
+                    status,
+                    order,
+                    updatedAt: at,
+                    history: [...i.history, { id: uid(), at, field: 'status', from: i.status, to: status }],
+                  },
+                  at,
+                );
               }
               return i.order === order ? i : { ...i, order };
             }),
@@ -171,12 +215,52 @@ export const useStore = create<AppState>()(
           ),
         })),
 
-      replaceData: (data) => set({ projects: data.projects, issues: data.issues }),
+      addMember: (name) => {
+        const member: Member = { id: uid(), name, createdAt: nowIso(), colorIndex: nextColorIndex(get().members) };
+        set((s) => ({ members: [...s.members, member] }));
+        return member;
+      },
+
+      deleteMember: (id) =>
+        set((s) => {
+          const at = nowIso();
+          return {
+            members: s.members.filter((m) => m.id !== id),
+            issues: s.issues.map((i) =>
+              i.assigneeId === id
+                ? {
+                    ...i,
+                    assigneeId: null,
+                    updatedAt: at,
+                    history: [...i.history, { id: uid(), at, field: 'assignee', from: id, to: null }],
+                  }
+                : i,
+            ),
+          };
+        }),
+
+      replaceData: (data) => set({ projects: data.projects, issues: data.issues, members: data.members }),
     }),
     {
       name: 'jira-clone-data',
-      version: 1,
-      partialize: (s) => ({ projects: s.projects, issues: s.issues }),
+      version: 3,
+      partialize: (s) => ({ projects: s.projects, issues: s.issues, members: s.members }),
+      migrate: (persisted, version) => {
+        let data = persisted as AppData;
+        // v1 → v2: team members and issue assignees (gamification).
+        if (version < 2) {
+          data = { ...data, members: [], issues: data.issues.map((i) => ({ ...i, assigneeId: null })) };
+        }
+        // v2 → v3: stored avatar colours and XP awards. Issues completed earlier earn no XP.
+        if (version < 3) {
+          data = {
+            ...data,
+            members: data.members.map((m, n) => ({ ...m, colorIndex: m.colorIndex ?? n })),
+            issues: data.issues.map((i) => ({ ...i, xpAward: i.xpAward ?? null })),
+          };
+        }
+        return data;
+      },
     },
   ),
 );
