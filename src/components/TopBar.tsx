@@ -3,6 +3,7 @@ import { useStore } from '../store';
 import { useUi } from '../uiStore';
 import { DataMenu } from './DataMenu';
 import { PlusIcon } from './Icons';
+import { ThemeMenu } from './ThemeMenu';
 
 export function TopBar() {
   const projects = useStore((s) => s.projects);
@@ -12,7 +13,7 @@ export function TopBar() {
 
   return (
     <header className="topbar">
-      <Link to="/" className="logo">
+      <Link to="/" className="logo" aria-label="Jira Clone – projekty">
         <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
           <defs>
             <linearGradient id="logo-gradient" x1="0" y1="0" x2="1" y2="1">
@@ -27,7 +28,7 @@ export function TopBar() {
         </svg>
         <span>Jira Clone</span>
       </Link>
-      <nav className="topbar-nav">
+      <nav className="topbar-nav" aria-label="Główna nawigacja">
         <NavLink to="/" end className="topbar-link">
           Projekty
         </NavLink>
@@ -43,6 +44,7 @@ export function TopBar() {
       </button>
       <div className="topbar-spacer" />
       <DataMenu />
+      <ThemeMenu />
     </header>
   );
 }

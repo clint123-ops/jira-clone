@@ -1,20 +1,38 @@
 :root {
+  color-scheme: light;
   --bg: #ffffff;
   --bg-sunken: #f7f8f9;
   --bg-column: #f1f2f4;
+  --bg-column-over: #e4e6ea;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f7f8f9;
+  --bg-overlay: #ffffff;
   --bg-hover: rgba(9, 30, 66, 0.06);
   --bg-pressed: rgba(9, 30, 66, 0.13);
   --bg-selected: #e9f2ff;
+  --backdrop: rgba(9, 30, 66, 0.54);
   --border: #dcdfe4;
   --border-input: #8590a2;
+  --border-danger: #f87168;
   --text: #172b4d;
   --text-subtle: #44546f;
   --text-subtlest: #626f86;
+  --text-on-primary: #ffffff;
+  --text-on-danger: #ffffff;
   --primary: #0c66e4;
   --primary-hover: #0055cc;
   --danger: #c9372c;
   --danger-hover: #ae2e24;
   --danger-bg: #ffeceb;
+  --success: #22a06b;
+  --status-todo-bg: #dcdfe4;
+  --status-todo-text: #44546f;
+  --status-in-progress-bg: #cce0ff;
+  --status-in-progress-text: #0055cc;
+  --status-in-review-bg: #dfd8fd;
+  --status-in-review-text: #5e4db2;
+  --status-done-bg: #baf3db;
+  --status-done-text: #216e4e;
   --shadow-card: 0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31);
   --shadow-overlay: 0 8px 12px rgba(9, 30, 66, 0.15), 0 0 1px rgba(9, 30, 66, 0.31);
   --radius: 4px;
@@ -24,6 +42,165 @@
   font-size: 14px;
   line-height: 1.43;
   color: var(--text);
+}
+
+/* ---------- Motywy (wybór w menu „Motyw”, src/theme.ts) ---------- */
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #1d2125;
+  --bg-sunken: #161a1d;
+  --bg-column: #161a1d;
+  --bg-column-over: #22272b;
+  --bg-card: #22272b;
+  --bg-card-hover: #2c333a;
+  --bg-overlay: #282e33;
+  --bg-hover: rgba(161, 189, 217, 0.08);
+  --bg-pressed: rgba(166, 197, 226, 0.16);
+  --bg-selected: #1c2b41;
+  --backdrop: rgba(16, 18, 20, 0.6);
+  --border: #38414a;
+  --border-input: #738496;
+  --border-danger: #f87168;
+  --text: #b6c2cf;
+  --text-subtle: #9fadbc;
+  --text-subtlest: #8c9bab;
+  --text-on-primary: #1d2125;
+  --text-on-danger: #1d2125;
+  --primary: #579dff;
+  --primary-hover: #85b8ff;
+  --danger: #f87168;
+  --danger-hover: #fd9891;
+  --danger-bg: #42221f;
+  --success: #4bce97;
+  --status-todo-bg: #38414a;
+  --status-todo-text: #b6c2cf;
+  --status-in-progress-bg: #09326c;
+  --status-in-progress-text: #85b8ff;
+  --status-in-review-bg: #352c63;
+  --status-in-review-text: #b8acf6;
+  --status-done-bg: #164b35;
+  --status-done-text: #7ee2b8;
+  --shadow-card: 0 1px 1px rgba(3, 4, 4, 0.5), 0 0 1px rgba(3, 4, 4, 0.5);
+  --shadow-overlay:
+    inset 0 0 0 1px rgba(188, 214, 240, 0.04), 0 8px 12px rgba(3, 4, 4, 0.36), 0 0 1px rgba(3, 4, 4, 0.5);
+}
+
+:root[data-theme='midnight'] {
+  color-scheme: dark;
+  --bg: #0e1726;
+  --bg-sunken: #0a111d;
+  --bg-column: #0a111d;
+  --bg-column-over: #16233a;
+  --bg-card: #15233a;
+  --bg-card-hover: #1c2d49;
+  --bg-overlay: #1a2a44;
+  --bg-hover: rgba(140, 180, 255, 0.08);
+  --bg-pressed: rgba(140, 180, 255, 0.16);
+  --bg-selected: #0f3340;
+  --backdrop: rgba(3, 7, 15, 0.7);
+  --border: #2b3d5c;
+  --border-input: #6d84a8;
+  --border-danger: #ff8f87;
+  --text: #dce6f5;
+  --text-subtle: #b4c3da;
+  --text-subtlest: #93a5c2;
+  --text-on-primary: #06121f;
+  --text-on-danger: #0a111d;
+  --primary: #3ddbd9;
+  --primary-hover: #7ee8e6;
+  --danger: #ff8f87;
+  --danger-hover: #ffb3ad;
+  --danger-bg: #3d1a24;
+  --success: #5ee0a0;
+  --status-todo-bg: #233350;
+  --status-todo-text: #b4c3da;
+  --status-in-progress-bg: #0f3a5c;
+  --status-in-progress-text: #8ccfff;
+  --status-in-review-bg: #2e2a5c;
+  --status-in-review-text: #c3b8ff;
+  --status-done-bg: #10402f;
+  --status-done-text: #7fe0b0;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.6);
+  --shadow-overlay: inset 0 0 0 1px rgba(140, 180, 255, 0.08), 0 8px 16px rgba(0, 0, 0, 0.45);
+}
+
+:root[data-theme='warm'] {
+  --bg: #fbf7f0;
+  --bg-sunken: #f3ecdf;
+  --bg-column: #eee5d4;
+  --bg-column-over: #e5d9c3;
+  --bg-card: #fffdf9;
+  --bg-card-hover: #f8f2e7;
+  --bg-overlay: #fffdf9;
+  --bg-hover: rgba(84, 58, 20, 0.07);
+  --bg-pressed: rgba(84, 58, 20, 0.14);
+  --bg-selected: #f7e6cc;
+  --backdrop: rgba(51, 40, 26, 0.5);
+  --border: #e0d3bd;
+  --border-input: #8c7a5e;
+  --border-danger: #e0786a;
+  --text: #33281a;
+  --text-subtle: #57472f;
+  --text-subtlest: #6b5a42;
+  --primary: #a14a12;
+  --primary-hover: #833b0c;
+  --danger: #b3261e;
+  --danger-hover: #8f1e17;
+  --danger-bg: #fbe3dc;
+  --success: #3d7d2e;
+  --status-todo-bg: #e6dccb;
+  --status-todo-text: #4f402b;
+  --status-in-progress-bg: #f6dcc3;
+  --status-in-progress-text: #8a3d0d;
+  --status-in-review-bg: #e8dcf0;
+  --status-in-review-text: #5b3a78;
+  --status-done-bg: #d8ead0;
+  --status-done-text: #2f5f22;
+  --shadow-card: 0 1px 1px rgba(84, 58, 20, 0.22), 0 0 1px rgba(84, 58, 20, 0.3);
+  --shadow-overlay: 0 8px 12px rgba(84, 58, 20, 0.15), 0 0 1px rgba(84, 58, 20, 0.3);
+}
+
+:root[data-theme='contrast'] {
+  --bg-sunken: #f2f2f2;
+  --bg-column: #ebebeb;
+  --bg-column-over: #dcdcdc;
+  --bg-card-hover: #f2f2f2;
+  --bg-hover: rgba(0, 0, 0, 0.08);
+  --bg-pressed: rgba(0, 0, 0, 0.16);
+  --bg-selected: #dbe7ff;
+  --backdrop: rgba(0, 0, 0, 0.7);
+  --border: #6b6b6b;
+  --border-input: #000000;
+  --border-danger: #b00020;
+  --text: #000000;
+  --text-subtle: #1f1f1f;
+  --text-subtlest: #3d3d3d;
+  --primary: #0047b3;
+  --primary-hover: #00317a;
+  --danger: #b00020;
+  --danger-hover: #8a0019;
+  --danger-bg: #ffe5e8;
+  --success: #006b3c;
+  --status-todo-bg: #e0e0e0;
+  --status-todo-text: #000000;
+  --status-in-progress-bg: #d6e4ff;
+  --status-in-progress-text: #002b80;
+  --status-in-review-bg: #e8e0ff;
+  --status-in-review-text: #3b1f99;
+  --status-done-bg: #d1f5e3;
+  --status-done-text: #00512c;
+  --shadow-card: 0 0 0 1px #000000;
+  --shadow-overlay: 0 0 0 2px #000000, 0 8px 16px rgba(0, 0, 0, 0.25);
+}
+
+:root[data-theme='contrast'] :focus-visible {
+  outline-width: 3px;
+}
+
+:root[data-theme='contrast'] .status-badge,
+:root[data-theme='contrast'] .status-select {
+  box-shadow: inset 0 0 0 1px currentColor;
 }
 
 *,
@@ -85,6 +262,18 @@ button {
   color: var(--danger);
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ---------- Przyciski ---------- */
 
 .btn {
@@ -117,7 +306,7 @@ button {
 
 .btn-primary {
   background: var(--primary);
-  color: #fff;
+  color: var(--text-on-primary);
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -135,7 +324,7 @@ button {
 
 .btn-danger {
   background: var(--danger);
-  color: #fff;
+  color: var(--text-on-danger);
 }
 
 .btn-danger:hover {
@@ -482,7 +671,7 @@ textarea.input {
 }
 
 .card-danger {
-  border-color: #f87168;
+  border-color: var(--border-danger);
 }
 
 .project-avatar {
@@ -525,6 +714,7 @@ textarea.input {
   padding: 0 8px 0 30px;
   border: 1px solid var(--border-input);
   border-radius: 3px;
+  background: var(--bg);
   font: inherit;
   color: var(--text);
 }
@@ -549,7 +739,7 @@ textarea.input {
   padding: 0 5px;
   border-radius: 9px;
   background: var(--primary);
-  color: #fff;
+  color: var(--text-on-primary);
   font-size: 11px;
   font-weight: 700;
 }
@@ -568,7 +758,7 @@ textarea.input {
   overflow-y: auto;
   padding: 6px 0;
   border-radius: var(--radius);
-  background: var(--bg);
+  background: var(--bg-overlay);
   box-shadow: var(--shadow-overlay);
 }
 
@@ -598,6 +788,10 @@ textarea.input {
   color: var(--danger);
 }
 
+.dropdown-item.is-danger:hover {
+  color: var(--danger-hover);
+}
+
 .dropdown-separator {
   height: 1px;
   margin: 6px 0;
@@ -607,6 +801,103 @@ textarea.input {
 .dropdown-empty {
   padding: 8px 14px;
   color: var(--text-subtlest);
+}
+
+.dropdown-heading {
+  padding: 4px 14px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-subtlest);
+}
+
+.theme-menu {
+  width: min(320px, calc(100vw - 24px));
+  max-height: calc(100vh - var(--topbar-height) - 8px);
+}
+
+.theme-options {
+  margin: 0;
+  padding: 0;
+  border: none;
+  min-width: 0;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.theme-option:hover {
+  background: var(--bg-hover);
+}
+
+.theme-option:has(input:checked) {
+  background: var(--bg-selected);
+}
+
+.theme-option:has(input:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.theme-preview {
+  position: relative;
+  flex-shrink: 0;
+  width: 44px;
+  height: 32px;
+  border-radius: var(--radius);
+  box-shadow: inset 0 0 0 1px var(--border);
+  overflow: hidden;
+}
+
+.theme-preview-card {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 24px;
+  height: 10px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+.theme-preview-accent {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  width: 16px;
+  height: 5px;
+  border-radius: 2px;
+}
+
+.theme-option-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.theme-option-name {
+  font-weight: 500;
+}
+
+.theme-option-desc {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-subtle);
+}
+
+.theme-option-check {
+  flex-shrink: 0;
+  color: var(--primary);
+  visibility: hidden;
+}
+
+.theme-option:has(input:checked) .theme-option-check {
+  visibility: visible;
 }
 
 /* ---------- Tablica ---------- */
@@ -633,7 +924,7 @@ textarea.input {
 }
 
 .board-column.is-over {
-  background: #e4e6ea;
+  background: var(--bg-column-over);
 }
 
 .board-column-header {
@@ -693,14 +984,14 @@ textarea.input {
 .issue-card {
   padding: 10px 12px 8px;
   border-radius: var(--radius);
-  background: var(--bg);
+  background: var(--bg-card);
   box-shadow: var(--shadow-card);
   cursor: pointer;
   user-select: none;
 }
 
 .issue-card:hover {
-  background: var(--bg-sunken);
+  background: var(--bg-card-hover);
 }
 
 .issue-card.is-overlay {
@@ -908,23 +1199,23 @@ textarea.input {
 }
 
 .status-todo {
-  background: #dcdfe4;
-  color: #44546f;
+  background: var(--status-todo-bg);
+  color: var(--status-todo-text);
 }
 
 .status-in_progress {
-  background: #cce0ff;
-  color: #0055cc;
+  background: var(--status-in-progress-bg);
+  color: var(--status-in-progress-text);
 }
 
 .status-in_review {
-  background: #dfd8fd;
-  color: #5e4db2;
+  background: var(--status-in-review-bg);
+  color: var(--status-in-review-text);
 }
 
 .status-done {
-  background: #baf3db;
-  color: #216e4e;
+  background: var(--status-done-bg);
+  color: var(--status-done-text);
 }
 
 /* ---------- Okna modalne ---------- */
@@ -938,14 +1229,19 @@ textarea.input {
   justify-content: center;
   padding: 48px 16px;
   overflow-y: auto;
-  background: rgba(9, 30, 66, 0.54);
+  background: var(--backdrop);
 }
 
 .modal {
   width: 100%;
   border-radius: 8px;
-  background: var(--bg);
+  background: var(--bg-overlay);
   box-shadow: var(--shadow-overlay);
+}
+
+/* The dialog only receives focus programmatically on open; its controls show their own focus rings. */
+.modal:focus {
+  outline: none;
 }
 
 .modal-header {
@@ -997,8 +1293,20 @@ textarea.input {
 .issue-modal-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 32px;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    'heading side'
+    'main side';
+  column-gap: 32px;
   padding: 16px 24px 32px;
+}
+
+.issue-heading {
+  grid-area: heading;
+}
+
+.issue-main {
+  grid-area: main;
 }
 
 .issue-title {
@@ -1027,6 +1335,7 @@ textarea.input {
   font-weight: 600;
   line-height: 32px;
   color: var(--text);
+  background: transparent;
   outline: none;
 }
 
@@ -1159,6 +1468,7 @@ textarea.input {
 }
 
 .issue-side {
+  grid-area: side;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -1223,6 +1533,7 @@ textarea.input {
   padding: 4px 6px;
   border: 1px solid var(--border-input);
   border-radius: 3px;
+  background: var(--bg);
 }
 
 .labels-editor:focus-within {
@@ -1232,16 +1543,18 @@ textarea.input {
 
 .labels-editor input {
   flex: 1;
-  min-width: 80px;
+  min-width: 48px;
   border: none;
   outline: none;
   font: inherit;
+  color: inherit;
   padding: 2px;
   background: transparent;
 }
 
 .details-panel .labels-editor {
   border-color: transparent;
+  background: transparent;
 }
 
 .details-panel .labels-editor:hover {
@@ -1262,7 +1575,7 @@ textarea.input {
   max-width: calc(100vw - 32px);
   padding: 14px 8px 14px 16px;
   border-radius: 6px;
-  background: var(--bg);
+  background: var(--bg-overlay);
   box-shadow: var(--shadow-overlay);
 }
 
@@ -1270,7 +1583,7 @@ textarea.input {
   width: 20px;
   height: 20px;
   margin-top: 1px;
-  color: #22a06b;
+  color: var(--success);
   flex-shrink: 0;
 }
 
@@ -1292,10 +1605,15 @@ textarea.input {
 @media (max-width: 860px) {
   .issue-modal-body {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    grid-template-areas:
+      'heading'
+      'side'
+      'main';
   }
 
   .issue-side {
-    order: -1;
+    margin-bottom: 24px;
   }
 }
 
@@ -1334,11 +1652,30 @@ textarea.input {
   }
 
   .backlog-table th:nth-child(n + 6),
-  .backlog-table td:nth-child(n + 6) {
+  .backlog-table td:nth-child(n + 6),
+  .projects-table th:nth-child(n + 5),
+  .projects-table td:nth-child(n + 5) {
     display: none;
   }
 
   .logo span {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    gap: 8px;
+    padding: 0 12px;
+  }
+
+  /* Icon-only buttons; the label stays available to screen readers. */
+  .btn-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 }

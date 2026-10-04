@@ -19,7 +19,7 @@ export function BoardPage() {
 
   return (
     <div className="page page-board">
-      <nav className="page-breadcrumbs">
+      <nav className="page-breadcrumbs" aria-label="Ścieżka">
         <Link to="/">Projekty</Link> / <span>{project.name}</span>
       </nav>
       <div className="page-header">

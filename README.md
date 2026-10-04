@@ -18,6 +18,8 @@ The app runs at http://localhost:5173.
 - Issue details: title, description, type, priority, status, labels, due date, comments, change history
 - Backlog with sorting, search and filters (type, priority, label)
 - "Dane" (Data) menu: JSON export/import, sample data, clear all
+- "Motyw" (Theme) menu: Light, Dark, Midnight, Sepia, High contrast, or follow the OS setting (stored separately
+  under `jira-clone-theme`)
 
 ## Tech stack
 
@@ -28,7 +30,8 @@ React 19 + TypeScript + Vite, `zustand` (state + `localStorage` persistence), `@
 - `npm run dev` – dev server
 - `npm run build` – type check + production build
 - `npm run format` – format code (Prettier)
-- `npm run ui-check` – screenshots at 3 resolutions + console errors + a11y check (requires a running dev server)
+- `npm run ui-check` – screenshots at 3 resolutions + console errors + a11y check (requires a running dev server);
+  `--theme <light|dark|midnight|warm|contrast>` checks a given color theme
 
 ## Contributing
 

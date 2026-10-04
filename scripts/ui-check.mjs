@@ -3,6 +3,7 @@
 // Usage (`npm run dev` must be running):
 //   npm run ui-check
 //   npm run ui-check -- --out screenshots/my-change --pages /p/FAV/board,/p/FAV/board?issue=FAV-3
+//   npm run ui-check -- --theme dark   (light | dark | midnight | warm | contrast; default: OS setting = light)
 //
 // Exits with code 1 on console/page errors, horizontal page overflow, or serious/critical a11y violations.
 import { createRequire } from 'node:module';
@@ -20,6 +21,12 @@ const arg = (name, fallback) => {
 
 const baseUrl = arg('url', 'http://localhost:5173');
 const outDir = arg('out', 'screenshots');
+const theme = arg('theme', null);
+const THEMES = ['system', 'light', 'dark', 'midnight', 'warm', 'contrast'];
+if (theme && !THEMES.includes(theme)) {
+  console.error(`Unknown --theme "${theme}". Use one of: ${THEMES.join(', ')}.`);
+  process.exit(1);
+}
 const pages = arg('pages', '/,/p/FAV/board,/p/FAV/backlog,/p/FAV/board?issue=FAV-3,/p/FAV/settings').split(',');
 
 const VIEWPORTS = [
@@ -44,6 +51,7 @@ const problems = [];
 for (const vp of VIEWPORTS) {
   // Fresh context = empty localStorage = sample data, so screenshots are reproducible.
   const context = await browser.newContext({ ...vp, locale: 'pl-PL' });
+  if (theme) await context.addInitScript((t) => localStorage.setItem('jira-clone-theme', t), theme);
   const page = await context.newPage();
   page.on('console', (msg) => {
     if (msg.type() === 'error') problems.push(`[${vp.name}] console.error: ${msg.text()}`);

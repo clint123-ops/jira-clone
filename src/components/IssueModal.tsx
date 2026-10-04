@@ -75,8 +75,11 @@ function IssueDetails({ project, issue, onClose }: IssueDetailsProps) {
       </div>
 
       <div className="issue-modal-body">
-        <div className="issue-main">
+        {/* Title is its own grid area so narrow layouts can show it above the details panel. */}
+        <div className="issue-heading">
           <EditableTitle value={issue.title} onSave={(title) => update({ title })} />
+        </div>
+        <div className="issue-main">
           <section className="issue-section">
             <h3>Opis</h3>
             <DescriptionEditor value={issue.description} onSave={(description) => update({ description })} />
@@ -87,7 +90,7 @@ function IssueDetails({ project, issue, onClose }: IssueDetailsProps) {
           </section>
         </div>
 
-        <aside className="issue-side">
+        <div className="issue-side">
           <select
             className={`status-select status-${issue.status}`}
             aria-label="Status"
@@ -108,6 +111,7 @@ function IssueDetails({ project, issue, onClose }: IssueDetailsProps) {
                 <TypeIcon type={issue.type} />
                 <select
                   className="input input-subtle"
+                  aria-label="Typ"
                   value={issue.type}
                   onChange={(e) => update({ type: e.target.value as IssueType })}
                 >
@@ -124,6 +128,7 @@ function IssueDetails({ project, issue, onClose }: IssueDetailsProps) {
                 <PriorityIcon priority={issue.priority} />
                 <select
                   className="input input-subtle"
+                  aria-label="Priorytet"
                   value={issue.priority}
                   onChange={(e) => update({ priority: e.target.value as Priority })}
                 >
@@ -147,6 +152,7 @@ function IssueDetails({ project, issue, onClose }: IssueDetailsProps) {
                 <input
                   className={`input input-subtle${isOverdue(issue) ? ' is-overdue' : ''}`}
                   type="date"
+                  aria-label="Termin"
                   value={issue.dueDate ?? ''}
                   onChange={(e) => update({ dueDate: e.target.value || null })}
                 />
@@ -168,7 +174,7 @@ function IssueDetails({ project, issue, onClose }: IssueDetailsProps) {
             <div>Utworzono {formatDateTime(issue.createdAt)}</div>
             <div>Zaktualizowano {formatDateTime(issue.updatedAt)}</div>
           </div>
-        </aside>
+        </div>
       </div>
     </>
   );

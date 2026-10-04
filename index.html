@@ -3,7 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Jira Clone</title>
+    <script>
+      // Apply the saved color theme before the first paint (no light flash). Mirrors src/theme.ts.
+      (function () {
+        var theme = null;
+        try {
+          theme = localStorage.getItem('jira-clone-theme');
+        } catch (e) {}
+        if (['light', 'dark', 'midnight', 'warm', 'contrast'].indexOf(theme) < 0) {
+          theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -48,7 +48,7 @@ export function ProjectLayout() {
             <div className="sidebar-project-meta">Projekt oprogramowania</div>
           </div>
         </div>
-        <nav className="sidebar-nav">
+        <nav className="sidebar-nav" aria-label="Nawigacja projektu">
           <NavLink to="board" className="sidebar-link">
             <BoardIcon /> Tablica
           </NavLink>
@@ -56,7 +56,7 @@ export function ProjectLayout() {
             <ListIcon /> Backlog
           </NavLink>
           <NavLink to="settings" className="sidebar-link">
-            <SettingsIcon /> Ustawienia projektu
+            <SettingsIcon /> Ustawienia
           </NavLink>
         </nav>
       </aside>
