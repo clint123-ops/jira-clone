@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { useUi } from '../uiStore';
+
+// Dialogs can stack (e.g. browser Back reopens an issue over the create dialog), so #root must
+// stay inert until the last one closes rather than being toggled by each dialog.
+let openDialogs = 0;
 
 interface ModalProps {
   onClose: () => void;
@@ -26,11 +31,15 @@ export function Modal({ onClose, children, width = 560, label }: ModalProps) {
     // screen-reader focus inside the dialog without a hand-rolled focus trap.
     const root = document.getElementById('root')!;
     const dialog = dialogRef.current!;
+    openDialogs += 1;
     root.inert = true;
+    // The toast lives in the inert #root, where clicks pass through it to the backdrop and close the dialog.
+    useUi.getState().hideToast();
     // Fields with autoFocus have already taken focus by now; only move it when nothing inside has it.
     if (!dialog.contains(document.activeElement)) dialog.focus();
     return () => {
-      root.inert = false;
+      openDialogs -= 1;
+      if (openDialogs === 0) root.inert = false;
       // StrictMode re-runs effects with the dialog still mounted; restoring focus then would steal it from autoFocus.
       queueMicrotask(() => {
         if (!dialog.isConnected) previouslyFocused?.focus();

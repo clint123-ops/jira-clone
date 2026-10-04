@@ -79,17 +79,7 @@ function IssueDetails({ project, issue, onClose }: IssueDetailsProps) {
         <div className="issue-heading">
           <EditableTitle value={issue.title} onSave={(title) => update({ title })} />
         </div>
-        <div className="issue-main">
-          <section className="issue-section">
-            <h3>Opis</h3>
-            <DescriptionEditor value={issue.description} onSave={(description) => update({ description })} />
-          </section>
-          <section className="issue-section">
-            <h3>Aktywność</h3>
-            <Activity issue={issue} />
-          </section>
-        </div>
-
+        {/* Side panel comes first in the DOM so Tab order matches the stacked narrow layout. */}
         <div className="issue-side">
           <select
             className={`status-select status-${issue.status}`}
@@ -174,6 +164,17 @@ function IssueDetails({ project, issue, onClose }: IssueDetailsProps) {
             <div>Utworzono {formatDateTime(issue.createdAt)}</div>
             <div>Zaktualizowano {formatDateTime(issue.updatedAt)}</div>
           </div>
+        </div>
+
+        <div className="issue-main">
+          <section className="issue-section">
+            <h3>Opis</h3>
+            <DescriptionEditor value={issue.description} onSave={(description) => update({ description })} />
+          </section>
+          <section className="issue-section">
+            <h3>Aktywność</h3>
+            <Activity issue={issue} />
+          </section>
         </div>
       </div>
     </>
