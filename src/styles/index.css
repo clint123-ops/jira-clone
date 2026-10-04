@@ -85,6 +85,18 @@ button {
   color: var(--danger);
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ---------- Przyciski ---------- */
 
 .btn {
@@ -948,6 +960,11 @@ textarea.input {
   box-shadow: var(--shadow-overlay);
 }
 
+/* The dialog only receives focus programmatically on open; its controls show their own focus rings. */
+.modal:focus {
+  outline: none;
+}
+
 .modal-header {
   padding: 24px 24px 8px;
 }
@@ -997,8 +1014,20 @@ textarea.input {
 .issue-modal-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 32px;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    'heading side'
+    'main side';
+  column-gap: 32px;
   padding: 16px 24px 32px;
+}
+
+.issue-heading {
+  grid-area: heading;
+}
+
+.issue-main {
+  grid-area: main;
 }
 
 .issue-title {
@@ -1159,6 +1188,7 @@ textarea.input {
 }
 
 .issue-side {
+  grid-area: side;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -1232,7 +1262,7 @@ textarea.input {
 
 .labels-editor input {
   flex: 1;
-  min-width: 80px;
+  min-width: 48px;
   border: none;
   outline: none;
   font: inherit;
@@ -1292,10 +1322,15 @@ textarea.input {
 @media (max-width: 860px) {
   .issue-modal-body {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    grid-template-areas:
+      'heading'
+      'side'
+      'main';
   }
 
   .issue-side {
-    order: -1;
+    margin-bottom: 24px;
   }
 }
 
@@ -1334,7 +1369,9 @@ textarea.input {
   }
 
   .backlog-table th:nth-child(n + 6),
-  .backlog-table td:nth-child(n + 6) {
+  .backlog-table td:nth-child(n + 6),
+  .projects-table th:nth-child(n + 5),
+  .projects-table td:nth-child(n + 5) {
     display: none;
   }
 

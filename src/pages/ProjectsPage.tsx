@@ -44,7 +44,7 @@ export function ProjectsPage() {
         </div>
       ) : (
         <div className="table-wrap">
-          <table className="table">
+          <table className="table projects-table">
             <thead>
               <tr>
                 <th>Nazwa</th>
@@ -52,7 +52,9 @@ export function ProjectsPage() {
                 <th>Zadania</th>
                 <th>Otwarte</th>
                 <th>Utworzono</th>
-                <th />
+                <th>
+                  <span className="sr-only">Akcje</span>
+                </th>
               </tr>
             </thead>
             <tbody>

@@ -65,7 +65,7 @@ export function BacklogPage() {
 
   return (
     <div className="page">
-      <nav className="page-breadcrumbs">
+      <nav className="page-breadcrumbs" aria-label="Ścieżka">
         <Link to="/">Projekty</Link> / <span>{project.name}</span>
       </nav>
       <div className="page-header">
