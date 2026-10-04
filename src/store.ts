@@ -1,0 +1,182 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { createSampleData } from './sample';
+import type { AppData, HistoryEntry, Issue, IssueDraft, IssuePatch, Project, Status } from './types';
+import { nowIso, uid } from './utils';
+
+interface AppState extends AppData {
+  createProject: (input: Pick<Project, 'key' | 'name' | 'description'>) => Project;
+  updateProject: (id: string, patch: Partial<Pick<Project, 'key' | 'name' | 'description'>>) => void;
+  deleteProject: (id: string) => void;
+
+  createIssue: (projectId: string, draft: IssueDraft) => Issue;
+  updateIssue: (id: string, patch: IssuePatch) => void;
+  /** Przenosi zadanie do kolumny `status`, przed zadanie `beforeId` (null = na koniec). */
+  moveIssue: (id: string, status: Status, beforeId: string | null) => void;
+  deleteIssue: (id: string) => void;
+
+  addComment: (issueId: string, body: string) => void;
+  updateComment: (issueId: string, commentId: string, body: string) => void;
+  deleteComment: (issueId: string, commentId: string) => void;
+
+  replaceData: (data: AppData) => void;
+}
+
+const byOrder = (a: Issue, b: Issue) => a.order - b.order;
+
+function nextOrder(issues: Issue[], projectId: string, status: Status): number {
+  let max = -1;
+  for (const i of issues) {
+    if (i.projectId === projectId && i.status === status) max = Math.max(max, i.order);
+  }
+  return max + 1;
+}
+
+const serialize = (value: unknown): string | null =>
+  Array.isArray(value) ? value.join(', ') || null : ((value as string | null | undefined) ?? null);
+
+function diffHistory(issue: Issue, patch: IssuePatch, at: string): HistoryEntry[] {
+  const entries: HistoryEntry[] = [];
+  for (const field of Object.keys(patch) as (keyof IssuePatch)[]) {
+    if (patch[field] === undefined) continue;
+    const from = serialize(issue[field]);
+    const to = serialize(patch[field]);
+    if (from === to) continue;
+    // Opis bywa długi – w historii zapisujemy tylko fakt zmiany.
+    const isDescription = field === 'description';
+    entries.push({ id: uid(), at, field, from: isDescription ? null : from, to: isDescription ? null : to });
+  }
+  return entries;
+}
+
+export const useStore = create<AppState>()(
+  persist(
+    (set, get) => ({
+      ...createSampleData(),
+
+      createProject: (input) => {
+        const project: Project = { id: uid(), createdAt: nowIso(), issueCounter: 0, ...input };
+        set((s) => ({ projects: [...s.projects, project] }));
+        return project;
+      },
+
+      updateProject: (id, patch) =>
+        set((s) => ({ projects: s.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)) })),
+
+      deleteProject: (id) =>
+        set((s) => ({
+          projects: s.projects.filter((p) => p.id !== id),
+          issues: s.issues.filter((i) => i.projectId !== id),
+        })),
+
+      createIssue: (projectId, draft) => {
+        const state = get();
+        const project = state.projects.find((p) => p.id === projectId);
+        if (!project) throw new Error(`Nie ma projektu ${projectId}`);
+        const at = nowIso();
+        const number = project.issueCounter + 1;
+        const issue: Issue = {
+          id: uid(),
+          projectId,
+          number,
+          ...draft,
+          order: nextOrder(state.issues, projectId, draft.status),
+          createdAt: at,
+          updatedAt: at,
+          comments: [],
+          history: [{ id: uid(), at, field: 'created', from: null, to: null }],
+        };
+        set((s) => ({
+          projects: s.projects.map((p) => (p.id === projectId ? { ...p, issueCounter: number } : p)),
+          issues: [...s.issues, issue],
+        }));
+        return issue;
+      },
+
+      updateIssue: (id, patch) =>
+        set((s) => {
+          const issue = s.issues.find((i) => i.id === id);
+          if (!issue) return s;
+          const at = nowIso();
+          const history = diffHistory(issue, patch, at);
+          if (history.length === 0) return s;
+          const statusChanged = patch.status !== undefined && patch.status !== issue.status;
+          const updated: Issue = {
+            ...issue,
+            ...patch,
+            order: statusChanged ? nextOrder(s.issues, issue.projectId, patch.status!) : issue.order,
+            updatedAt: at,
+            history: [...issue.history, ...history],
+          };
+          return { issues: s.issues.map((i) => (i.id === id ? updated : i)) };
+        }),
+
+      moveIssue: (id, status, beforeId) =>
+        set((s) => {
+          const issue = s.issues.find((i) => i.id === id);
+          if (!issue) return s;
+          const column = s.issues
+            .filter((i) => i.projectId === issue.projectId && i.status === status && i.id !== id)
+            .sort(byOrder);
+          let index = beforeId ? column.findIndex((i) => i.id === beforeId) : -1;
+          if (index < 0) index = column.length;
+          column.splice(index, 0, issue);
+          const orders = new Map(column.map((i, n) => [i.id, n]));
+
+          const at = nowIso();
+          const statusChanged = issue.status !== status;
+          return {
+            issues: s.issues.map((i) => {
+              const order = orders.get(i.id);
+              if (order === undefined) return i;
+              if (i.id === id && statusChanged) {
+                return {
+                  ...i,
+                  status,
+                  order,
+                  updatedAt: at,
+                  history: [...i.history, { id: uid(), at, field: 'status', from: i.status, to: status }],
+                };
+              }
+              return i.order === order ? i : { ...i, order };
+            }),
+          };
+        }),
+
+      deleteIssue: (id) => set((s) => ({ issues: s.issues.filter((i) => i.id !== id) })),
+
+      addComment: (issueId, body) =>
+        set((s) => ({
+          issues: s.issues.map((i) =>
+            i.id === issueId ? { ...i, comments: [...i.comments, { id: uid(), body, createdAt: nowIso() }] } : i,
+          ),
+        })),
+
+      updateComment: (issueId, commentId, body) =>
+        set((s) => ({
+          issues: s.issues.map((i) =>
+            i.id === issueId
+              ? {
+                  ...i,
+                  comments: i.comments.map((c) => (c.id === commentId ? { ...c, body, updatedAt: nowIso() } : c)),
+                }
+              : i,
+          ),
+        })),
+
+      deleteComment: (issueId, commentId) =>
+        set((s) => ({
+          issues: s.issues.map((i) =>
+            i.id === issueId ? { ...i, comments: i.comments.filter((c) => c.id !== commentId) } : i,
+          ),
+        })),
+
+      replaceData: (data) => set({ projects: data.projects, issues: data.issues }),
+    }),
+    {
+      name: 'jira-clone-data',
+      version: 1,
+      partialize: (s) => ({ projects: s.projects, issues: s.issues }),
+    },
+  ),
+);
