@@ -3,6 +3,7 @@ import { useStore } from '../store';
 import { useUi } from '../uiStore';
 import { DataMenu } from './DataMenu';
 import { PlusIcon } from './Icons';
+import { ThemeMenu } from './ThemeMenu';
 
 export function TopBar() {
   const projects = useStore((s) => s.projects);
@@ -43,6 +44,7 @@ export function TopBar() {
       </button>
       <div className="topbar-spacer" />
       <DataMenu />
+      <ThemeMenu />
     </header>
   );
 }

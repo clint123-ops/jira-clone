@@ -58,7 +58,7 @@ export function DataMenu() {
   return (
     <div className="dropdown" ref={ref}>
       <button type="button" className="btn btn-subtle" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-        <DatabaseIcon /> Dane
+        <DatabaseIcon /> <span className="btn-label">Dane</span>
       </button>
       {open && (
         <div className="dropdown-menu dropdown-menu-right">

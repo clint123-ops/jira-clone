@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Jira Clone</title>
+    <script>
+      // Apply the saved color theme before the first paint (no light flash). Mirrors src/theme.ts.
+      try {
+        var theme = localStorage.getItem('jira-clone-theme');
+        if (!theme || theme === 'system') {
+          theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.dataset.theme = theme;
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

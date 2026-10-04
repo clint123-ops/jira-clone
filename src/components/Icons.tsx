@@ -118,6 +118,19 @@ export const CheckCircleIcon = (p: IconProps) => (
     <path d="M5.3 8.2l1.8 1.8 3.6-3.8" />
   </svg>
 );
+export const PaletteIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M8 1.8a6.2 6.2 0 000 12.4c.9 0 1.4-.6 1.4-1.3 0-.8-.6-1.1-.6-1.8 0-.7.6-1.2 1.3-1.2h1.5c1.6 0 2.6-1.1 2.6-2.6 0-3-2.8-5.5-6.2-5.5z" />
+    <circle cx="5" cy="7" r=".6" />
+    <circle cx="7.3" cy="4.6" r=".6" />
+    <circle cx="10.5" cy="5.3" r=".6" />
+  </svg>
+);
+export const CheckIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M3.5 8.5l3 3 6-6.5" />
+  </svg>
+);
 export const DatabaseIcon = (p: IconProps) => (
   <svg {...base(p)}>
     <ellipse cx="8" cy="3.8" rx="5.5" ry="2" />

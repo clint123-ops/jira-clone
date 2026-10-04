@@ -65,6 +65,10 @@ Without `--pages` it checks projects, board, backlog, an open issue and settings
 `/p/FAV/board?issue=FAV-3` opens the issue dialog). Required: exit code 0 – no console errors, no horizontal page
 overflow, no `serious`/`critical` a11y violations. Also fix `moderate`/`minor` warnings in code you are changing.
 
+Colors come from theme tokens (CSS variables in `src/styles/index.css`, one block per theme) – never hard-code a color
+in a component or rule. If you change colors or add UI, also run the check with `--theme dark`, `midnight`, `warm` and
+`contrast` (use a separate `--out` per theme).
+
 **Look at every screenshot** (desktop 1440×900, tablet 768×1024, mobile 375×812) and review it like a designer:
 clipped text, overlapping elements, awkward gaps, things unreadable on a phone, inconsistent spacing. Any problem = fix
 it and go back to step 1.
