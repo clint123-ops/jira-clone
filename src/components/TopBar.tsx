@@ -43,7 +43,7 @@ export function TopBar() {
         title={projects.length === 0 ? 'Najpierw utwórz projekt' : undefined}
         onClick={() => openCreate({ projectId: currentProject?.id })}
       >
-        <PlusIcon /> Utwórz
+        <PlusIcon /> <span className="btn-label">Utwórz</span>
       </button>
       <div className="topbar-spacer" />
       <DataMenu />
