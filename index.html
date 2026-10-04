@@ -7,13 +7,16 @@
     <title>Jira Clone</title>
     <script>
       // Apply the saved color theme before the first paint (no light flash). Mirrors src/theme.ts.
-      try {
-        var theme = localStorage.getItem('jira-clone-theme');
-        if (!theme || theme === 'system') {
+      (function () {
+        var theme = null;
+        try {
+          theme = localStorage.getItem('jira-clone-theme');
+        } catch (e) {}
+        if (['light', 'dark', 'midnight', 'warm', 'contrast'].indexOf(theme) < 0) {
           theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
         document.documentElement.dataset.theme = theme;
-      } catch (e) {}
+      })();
     </script>
   </head>
   <body>

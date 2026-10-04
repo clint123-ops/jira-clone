@@ -22,6 +22,11 @@ const arg = (name, fallback) => {
 const baseUrl = arg('url', 'http://localhost:5173');
 const outDir = arg('out', 'screenshots');
 const theme = arg('theme', null);
+const THEMES = ['system', 'light', 'dark', 'midnight', 'warm', 'contrast'];
+if (theme && !THEMES.includes(theme)) {
+  console.error(`Unknown --theme "${theme}". Use one of: ${THEMES.join(', ')}.`);
+  process.exit(1);
+}
 const pages = arg('pages', '/,/p/FAV/board,/p/FAV/backlog,/p/FAV/board?issue=FAV-3,/p/FAV/settings').split(',');
 
 const VIEWPORTS = [

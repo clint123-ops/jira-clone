@@ -45,6 +45,8 @@ export function ThemeMenu() {
                   name="theme"
                   className="sr-only"
                   value={option.id}
+                  aria-labelledby={`theme-${option.id}-name`}
+                  aria-describedby={`theme-${option.id}-desc`}
                   checked={preference === option.id}
                   onChange={() => setPreference(option.id)}
                 />
@@ -53,8 +55,12 @@ export function ThemeMenu() {
                   <span className="theme-preview-accent" style={{ background: option.preview.accent }} />
                 </span>
                 <span className="theme-option-text">
-                  <span className="theme-option-name">{option.label}</span>
-                  <span className="theme-option-desc">{option.description}</span>
+                  <span id={`theme-${option.id}-name`} className="theme-option-name">
+                    {option.label}
+                  </span>
+                  <span id={`theme-${option.id}-desc`} className="theme-option-desc">
+                    {option.description}
+                  </span>
                 </span>
                 <CheckIcon className="theme-option-check" />
               </label>

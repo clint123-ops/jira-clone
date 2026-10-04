@@ -788,6 +788,10 @@ textarea.input {
   color: var(--danger);
 }
 
+.dropdown-item.is-danger:hover {
+  color: var(--danger-hover);
+}
+
 .dropdown-separator {
   height: 1px;
   margin: 6px 0;
@@ -809,7 +813,7 @@ textarea.input {
 
 .theme-menu {
   width: min(320px, calc(100vw - 24px));
-  max-height: none;
+  max-height: calc(100vh - var(--topbar-height) - 8px);
 }
 
 .theme-options {

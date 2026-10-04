@@ -94,3 +94,7 @@ export const useTheme = create<ThemeState>()((set) => ({
 apply(useTheme.getState().preference);
 useTheme.subscribe((s) => apply(s.preference));
 darkQuery.addEventListener('change', () => apply(useTheme.getState().preference));
+// Follow a theme change made in another tab (the storage event only fires in the other tabs).
+window.addEventListener('storage', (e) => {
+  if (e.key === STORAGE_KEY) useTheme.setState({ preference: isPreference(e.newValue) ? e.newValue : 'system' });
+});
